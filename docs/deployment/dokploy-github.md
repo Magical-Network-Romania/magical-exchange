@@ -133,6 +133,36 @@ https://exchange.magical.md
 
 The web page's API button calls `https://api.exchange.magical.md/api/ping` when opened from `https://exchange.magical.md`.
 
+## Database Health Issues
+
+If deployment fails with this message:
+
+```text
+dependency failed to start: container ...-database-1 is unhealthy
+```
+
+open the `database` container logs in Dokploy first. The backend depends on a healthy database, so the backend will not start until this is fixed.
+
+The most common causes are:
+
+- The first PostgreSQL initialization took longer than expected on the VPS.
+- `POSTGRES_DB`, `POSTGRES_USER`, or `POSTGRES_PASSWORD` is missing in the Dokploy environment values.
+- A previous deployment already created the `database_data` volume with different database/user values.
+- A previous deployment created a Postgres 18 volume using the old `/var/lib/postgresql/data` mount path.
+
+For a first test deployment where there is no real data yet, the fastest fix for an old or broken volume is to delete the Compose service's `database_data` volume from Dokploy/Docker and redeploy. Do not delete that volume after real data exists unless you have a backup.
+
+To inspect from the VPS shell:
+
+```sh
+docker logs <database-container-name>
+docker inspect <database-container-name> --format '{{json .State.Health}}'
+```
+
+If the logs say the database directory already exists, PostgreSQL is reusing the existing volume and will ignore new `POSTGRES_*` initialization values. Keep the old values, manually create the missing DB/user, or reset the volume if this is only a test deployment.
+
+Postgres 18 Docker images expect the named volume to be mounted at `/var/lib/postgresql`, not `/var/lib/postgresql/data`. The Compose files already use the Postgres 18-compatible mount path. If an earlier deployment created a volume with the old path, reset that test volume before redeploying.
+
 ## Built-In Database Alternative
 
 Dokploy's built-in PostgreSQL service is also valid, but it is not the current repository setup.
