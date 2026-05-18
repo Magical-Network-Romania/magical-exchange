@@ -37,8 +37,7 @@ Choose `Docker Compose`, not `Stack`. Stack is for Docker Swarm and is not the r
 Create these DNS records before or shortly after the first deploy:
 
 ```text
-exchange.magical.md      A      <your-vps-ip>
-api.exchange.magical.md  A      <your-vps-ip>
+exchange.magical.md  A  <your-vps-ip>
 ```
 
 Add `AAAA` records too if the VPS has IPv6.
@@ -80,10 +79,17 @@ In the Dokploy Compose service Domains tab:
 
 1. Add `exchange.magical.md`.
 2. Route it to service `web`, port `3000`.
-3. Add `api.exchange.magical.md`.
-4. Route it to service `backend`, port `8080`.
+3. Add `exchange.magical.md` again with path `/api`.
+4. Route the `/api` path to service `backend`, port `8080`.
 
 Do not expose the database with a domain.
+
+The result should be:
+
+```text
+https://exchange.magical.md/      -> web:3000
+https://exchange.magical.md/api   -> backend:8080
+```
 
 The numbers `3000` and `8080` are container ports. In production, users should access the app through HTTPS domains, not through public VPS ports.
 
@@ -120,9 +126,8 @@ On backend startup:
 After deployment:
 
 ```sh
-curl https://api.exchange.magical.md/actuator/health
-curl https://api.exchange.magical.md/api/hello
-curl https://api.exchange.magical.md/api/ping
+curl https://exchange.magical.md/api/hello
+curl https://exchange.magical.md/api/ping
 ```
 
 Then open:
@@ -131,7 +136,7 @@ Then open:
 https://exchange.magical.md
 ```
 
-The web page's API button calls `https://api.exchange.magical.md/api/ping` when opened from `https://exchange.magical.md`.
+The web page's API button calls same-origin `/api/ping` when opened from `https://exchange.magical.md`.
 
 ## Database Health Issues
 
