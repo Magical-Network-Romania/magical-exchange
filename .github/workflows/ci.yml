@@ -56,9 +56,9 @@ jobs:
         run: docker compose -f infra/compose.local.yml config
       - name: Validate Dokploy Compose file
         env:
-          BACKEND_IMAGE: ghcr.io/example/magical-exchange-backend:latest
+          BACKEND_IMAGE: ghcr.io/Magical-Network-Romania/magical-exchange-backend:latest
           POSTGRES_DB: magical_exchange
           POSTGRES_PASSWORD: magical_exchange
           POSTGRES_USER: magical_exchange
-          WEB_IMAGE: ghcr.io/example/magical-exchange-web:latest
+          WEB_IMAGE: ghcr.io/Magical-Network-Romania/magical-exchange-web:latest
         run: docker compose -f infra/compose.dokploy.yml config
