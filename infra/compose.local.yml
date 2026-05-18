@@ -1,0 +1,46 @@
+name: magical-exchange-local
+
+services:
+  database:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-magical_exchange}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-magical_exchange}
+      POSTGRES_USER: ${POSTGRES_USER:-magical_exchange}
+    healthcheck:
+      interval: 10s
+      retries: 8
+      test:
+        - CMD-SHELL
+        - pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"
+      timeout: 5s
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - database_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ..
+      dockerfile: services/backend/Dockerfile
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-magical_exchange}
+      DATABASE_URL: jdbc:postgresql://database:5432/${POSTGRES_DB:-magical_exchange}
+      DATABASE_USERNAME: ${POSTGRES_USER:-magical_exchange}
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+
+  web:
+    build:
+      context: ..
+      dockerfile: apps/web/Dockerfile
+    environment:
+      PORT: 3000
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+
+volumes:
+  database_data:
