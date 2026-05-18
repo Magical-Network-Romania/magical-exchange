@@ -8,8 +8,7 @@ The database migrations are still present, but the runtime apps are intentionall
 - `apps/web` - React TSX + Tailwind/shadcn-style smoke-test page served directly by Bun.
 - `infra/compose.local.yml` - local Docker Compose for PostgreSQL, backend, and web.
 - `infra/compose.dokploy.yml` - production Docker Compose for Dokploy.
-- `.github/workflows` - CI plus a manual VPS deploy workflow.
-- `docs/deployment/dokploy-github-actions.md` - production CI/CD setup guide for Dokploy and GitHub Actions.
+- `docs/deployment/dokploy-github.md` - production deployment guide for Dokploy's GitHub integration.
 
 ## Local Run
 
@@ -25,4 +24,4 @@ docker compose -f infra/compose.local.yml up --build
 
 ## VPS Deployment
 
-Use the Dokploy production Compose file and GitHub Actions workflow described in `docs/deployment/dokploy-github-actions.md`.
+Use the Dokploy production Compose file described in `docs/deployment/dokploy-github.md`.

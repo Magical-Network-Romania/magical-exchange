@@ -18,7 +18,9 @@ function getDefaultApiBaseUrl() {
 		return "http://localhost:8080";
 	}
 
-	return `${window.location.protocol}//${window.location.hostname}:8080`;
+	const rootHost = window.location.hostname.startsWith("www.") ? window.location.hostname.slice(4) : window.location.hostname;
+
+	return `${window.location.protocol}//api.${rootHost}`;
 }
 
 async function requestApiPing() {
