@@ -1,5 +1,32 @@
 {
 	"$schema": "../../node_modules/@biomejs/biome/configuration_schema.json",
 	"extends": ["../../biome.json"],
+	"linter": {
+		"domains": {
+			"react": "recommended"
+		},
+		"rules": {
+			"correctness": {
+				"noNestedComponentDefinitions": "error",
+				"noReactPropAssignments": "error",
+				"useUniqueElementIds": "error"
+			},
+			"style": {
+				"useComponentExportOnlyModules": "off",
+				"useConsistentCurlyBraces": "error",
+				"useFragmentSyntax": "warn",
+				"useReactFunctionComponents": "error",
+				"useSelfClosingElements": "warn"
+			},
+			"suspicious": {
+				"noUnknownAtRules": "off"
+			}
+		}
+	},
+	"css": {
+		"parser": {
+			"tailwindDirectives": true
+		}
+	},
 	"root": false
 }
