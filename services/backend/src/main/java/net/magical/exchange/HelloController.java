@@ -19,6 +19,11 @@ public class HelloController {
 		return new PingResponse("pong");
 	}
 
+	@GetMapping("/api/soroja")
+	public PingResponse soroja() {
+		return new PingResponse("Soroja is the best!");
+	}
+
 	public record HelloResponse(String message, OffsetDateTime timestamp) {
 	}
 
