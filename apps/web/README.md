@@ -15,3 +15,5 @@ bun run --cwd apps/web start
 - API button: calls `http://localhost:8080/api/ping` locally, or `https://api.<web-domain>/api/ping` on a deployed host.
 
 The app uses Tailwind and shadcn-style local components in `src/components/ui`.
+
+`bun run start` serves the already-built `dist` directory through `src/server.ts`. Use `bun run dev` for Bun's HTML dev server.
