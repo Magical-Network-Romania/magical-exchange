@@ -43,8 +43,12 @@
 	<!-- Error-prone: suspicious constructs that are easy to miss in review. -->
 	<rule ref="category/java/errorprone.xml/AssignmentInOperand"/>
 	<rule ref="category/java/errorprone.xml/AvoidBranchingStatementAsLastInLoop"/>
-	<rule ref="category/java/errorprone.xml/AvoidCatchingNPE"/>
-	<rule ref="category/java/errorprone.xml/AvoidCatchingThrowable"/>
+	<rule ref="category/java/errorprone.xml/AvoidCatchingGenericException">
+		<properties>
+			<property name="typesThatShouldNotBeCaught"
+				value="java.lang.NullPointerException,java.lang.Exception,java.lang.RuntimeException,java.lang.Throwable,java.lang.Error"/>
+		</properties>
+	</rule>
 	<rule ref="category/java/errorprone.xml/BrokenNullCheck"/>
 	<rule ref="category/java/errorprone.xml/CallSuperFirst"/>
 	<rule ref="category/java/errorprone.xml/CallSuperLast"/>
@@ -54,7 +58,6 @@
 	<rule ref="category/java/errorprone.xml/DoNotExtendJavaLangThrowable"/>
 	<rule ref="category/java/errorprone.xml/DoNotTerminateVM"/>
 	<rule ref="category/java/errorprone.xml/DoNotThrowExceptionInFinally"/>
-	<rule ref="category/java/errorprone.xml/DontImportSun"/>
 	<rule ref="category/java/errorprone.xml/EmptyCatchBlock"/>
 	<rule ref="category/java/errorprone.xml/EqualsNull"/>
 	<rule ref="category/java/errorprone.xml/ImplicitSwitchFallThrough"/>
@@ -63,6 +66,7 @@
 	<rule ref="category/java/errorprone.xml/ReturnFromFinallyBlock"/>
 	<rule ref="category/java/errorprone.xml/UnconditionalIfStatement"/>
 	<rule ref="category/java/errorprone.xml/UnnecessaryBooleanAssertion"/>
+	<rule ref="category/java/errorprone.xml/UnsupportedJdkApiUsage"/>
 	<rule ref="category/java/errorprone.xml/UseEqualsToCompareStrings"/>
 	<rule ref="category/java/errorprone.xml/UseLocaleWithCaseConversions"/>
 

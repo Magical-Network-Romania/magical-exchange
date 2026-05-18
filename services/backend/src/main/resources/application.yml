@@ -1,0 +1,18 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: magical-exchange-backend
+  datasource:
+    password: ${DATABASE_PASSWORD:magical_exchange}
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/magical_exchange}
+    username: ${DATABASE_USERNAME:magical_exchange}
+  flyway:
+    enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
