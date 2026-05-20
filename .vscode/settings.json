@@ -36,6 +36,7 @@
 	},
 	"java.format.enabled": true,
 	"java.configuration.updateBuildConfiguration": "interactive",
+	"java.compile.nullAnalysis.mode": "automatic",
 	"java.format.settings.profile": "MagicalExchange",
 	"java.format.settings.url": "${workspaceFolder}/config/java/formatter/eclipse-java-formatter.xml"
 }
