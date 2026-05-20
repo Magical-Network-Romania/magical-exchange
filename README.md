@@ -1,10 +1,8 @@
 # Magical Exchange
 
-Minimal deployment smoke-test scaffold for Magical Exchange.
+Deployment scaffold for Magical Exchange.
 
-The database migrations are still present, but the runtime apps are intentionally tiny right now:
-
-- `services/backend` - Spring Boot API with `GET /api/hello`.
+- `services/backend` - Spring Boot API with exchange-rate endpoints.
 - `apps/web` - React TSX + Tailwind/shadcn-style smoke-test page served directly by Bun.
 - `infra/compose.local.yml` - local Docker Compose for PostgreSQL, backend, and web.
 - `infra/compose.dokploy.yml` - production Docker Compose for Dokploy.
@@ -17,8 +15,7 @@ cp .env.example .env
 docker compose -f infra/compose.local.yml up --build
 ```
 
-- Backend: `http://localhost:8080/api/hello`
-- Backend ping: `http://localhost:8080/api/ping`
+- Backend countries: `http://localhost:8080/api/v1/countries`
 - Backend health: `http://localhost:8080/actuator/health`
 - Web: `http://localhost:3000`
 

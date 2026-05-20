@@ -1,7 +1,8 @@
 FROM maven:3.9-eclipse-temurin-21-noble AS build
 WORKDIR /workspace
+COPY pom.xml pom.xml
 COPY services/backend/pom.xml services/backend/pom.xml
-COPY services/backend/config services/backend/config
+COPY config/java config/java
 COPY services/backend/src services/backend/src
 RUN mvn -f services/backend/pom.xml -DskipTests package
 

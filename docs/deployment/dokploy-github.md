@@ -121,23 +121,6 @@ On backend startup:
 4. Flyway applies SQL files from `services/backend/src/main/resources/db/migration`.
 5. The API starts serving requests.
 
-## Smoke Checks
-
-After deployment:
-
-```sh
-curl https://exchange.magical.md/api/hello
-curl https://exchange.magical.md/api/ping
-```
-
-Then open:
-
-```text
-https://exchange.magical.md
-```
-
-The web page's API button calls same-origin `/api/ping` when opened from `https://exchange.magical.md`.
-
 ## Database Health Issues
 
 If deployment fails with this message:

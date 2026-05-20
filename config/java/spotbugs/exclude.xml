@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+	<Match>
+		<Class name="~net\.magical\.exchange\..*Application"/>
+		<Bug pattern="EI_EXPOSE_REP2"/>
+	</Match>
+	<Match>
+		<Class name="net.magical.exchange.ingestion.SourceFetchScheduler"/>
+		<Field name="marketRateIngestionService"/>
+		<Bug pattern="EI_EXPOSE_REP2"/>
+	</Match>
+	<Match>
+		<Class name="~net\.magical\.exchange\.(service|ingestion)\..*"/>
+		<Field name="~.*Repository"/>
+		<Bug pattern="EI_EXPOSE_REP2"/>
+	</Match>
+	<Match>
+		<Class name="~net\.magical\.exchange\.repository\..*Repository"/>
+		<Field name="namedParameterJdbcTemplate"/>
+		<Bug pattern="EI_EXPOSE_REP2"/>
+	</Match>
+</FindBugsFilter>

@@ -34,7 +34,8 @@
 	"[typescriptreact]": {
 		"editor.defaultFormatter": "biomejs.biome"
 	},
+	"java.format.enabled": true,
 	"java.configuration.updateBuildConfiguration": "interactive",
 	"java.format.settings.profile": "MagicalExchange",
-	"java.format.settings.url": "${workspaceFolder}/services/backend/config/formatter/eclipse-java-formatter.xml"
+	"java.format.settings.url": "${workspaceFolder}/config/java/formatter/eclipse-java-formatter.xml"
 }

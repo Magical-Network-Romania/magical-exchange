@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>4.0.6</version>
+		<relativePath />
+	</parent>
+
+	<groupId>net.magical.exchange</groupId>
+	<artifactId>magical-exchange-java-parent</artifactId>
+	<version>0.1.0-SNAPSHOT</version>
+	<packaging>pom</packaging>
+	<name>Magical Exchange Java Parent</name>
+
+	<modules>
+		<module>services/backend</module>
+		<module>apps/desktop</module>
+	</modules>
+
+	<properties>
+		<java.version>21</java.version>
+		<checkstyle.version>13.4.2</checkstyle.version>
+		<pmd.version>7.24.0</pmd.version>
+		<spotbugs.maven.version>4.9.8.3</spotbugs.maven.version>
+		<spotless.maven.version>3.5.1</spotless.maven.version>
+		<java.quality.config.dir>${project.parent.basedir}/config/java</java.quality.config.dir>
+		<java.quality.skip>true</java.quality.skip>
+	</properties>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>com.diffplug.spotless</groupId>
+				<artifactId>spotless-maven-plugin</artifactId>
+				<version>${spotless.maven.version}</version>
+				<configuration>
+					<skip>${java.quality.skip}</skip>
+					<lineEndings>WINDOWS</lineEndings>
+					<java>
+						<eclipse>
+							<file>${java.quality.config.dir}/formatter/eclipse-java-formatter.xml</file>
+						</eclipse>
+						<importOrder />
+						<removeUnusedImports />
+						<formatAnnotations />
+					</java>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>check</goal>
+						</goals>
+						<phase>verify</phase>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>3.6.0</version>
+				<configuration>
+					<skip>${java.quality.skip}</skip>
+					<configLocation>${java.quality.config.dir}/checkstyle/checkstyle.xml</configLocation>
+					<consoleOutput>true</consoleOutput>
+					<failsOnError>true</failsOnError>
+					<includeTestSourceDirectory>true</includeTestSourceDirectory>
+				</configuration>
+				<dependencies>
+					<dependency>
+						<groupId>com.puppycrawl.tools</groupId>
+						<artifactId>checkstyle</artifactId>
+						<version>${checkstyle.version}</version>
+					</dependency>
+				</dependencies>
+				<executions>
+					<execution>
+						<goals>
+							<goal>check</goal>
+						</goals>
+						<phase>verify</phase>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<version>3.28.0</version>
+				<configuration>
+					<skip>${java.quality.skip}</skip>
+					<failOnViolation>true</failOnViolation>
+					<includeTests>true</includeTests>
+					<printFailingErrors>true</printFailingErrors>
+					<rulesets>
+						<ruleset>${java.quality.config.dir}/pmd/ruleset.xml</ruleset>
+					</rulesets>
+				</configuration>
+				<dependencies>
+					<dependency>
+						<groupId>net.sourceforge.pmd</groupId>
+						<artifactId>pmd-core</artifactId>
+						<version>${pmd.version}</version>
+					</dependency>
+					<dependency>
+						<groupId>net.sourceforge.pmd</groupId>
+						<artifactId>pmd-java</artifactId>
+						<version>${pmd.version}</version>
+					</dependency>
+				</dependencies>
+				<executions>
+					<execution>
+						<goals>
+							<goal>check</goal>
+						</goals>
+						<phase>verify</phase>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>com.github.spotbugs</groupId>
+				<artifactId>spotbugs-maven-plugin</artifactId>
+				<version>${spotbugs.maven.version}</version>
+				<configuration>
+					<skip>${java.quality.skip}</skip>
+					<effort>Max</effort>
+					<excludeFilterFile>${java.quality.config.dir}/spotbugs/exclude.xml</excludeFilterFile>
+					<threshold>Low</threshold>
+					<xmlOutput>true</xmlOutput>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>check</goal>
+						</goals>
+						<phase>verify</phase>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>

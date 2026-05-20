@@ -17,3 +17,10 @@ management:
     web:
       exposure:
         include: health,info,metrics
+
+magical:
+  exchange:
+    ingestion:
+      enabled: true
+      fixed-delay-ms: 3600000
+      startup-enabled: true
