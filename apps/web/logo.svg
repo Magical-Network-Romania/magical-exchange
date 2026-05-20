@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: url(#New_Gradient_Swatch_5);
+      }
+
+      .cls-2 {
+        fill: url(#New_Gradient_Swatch_5-2);
+      }
+    </style>
+    <linearGradient id="New_Gradient_Swatch_5" data-name="New Gradient Swatch 5" x1="135.76" y1="452.07" x2="135.76" y2="29.01" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#910091"/>
+      <stop offset="1" stop-color="#b13cff"/>
+    </linearGradient>
+    <linearGradient id="New_Gradient_Swatch_5-2" data-name="New Gradient Swatch 5" x1="256.6" y1="482.99" x2="256.6" y2="30.75" xlink:href="#New_Gradient_Swatch_5"/>
+  </defs>
+  <polygon class="cls-1" points="106.28 365.67 106.28 364.97 106.28 215.58 187.7 296.8 242.52 242.35 28.99 29.01 28.99 452.07 106.28 375.98 106.28 365.67"/>
+  <polygon class="cls-2" points="482.43 482.41 482.43 263.48 415.07 263.48 396.81 263.48 319.48 340.77 382.63 340.77 405.14 340.77 405.14 405.12 405.14 405.7 216.76 405.7 256.58 365.88 311.24 311.22 354.15 268.35 405.14 217.36 405.14 242.87 482.43 242.87 482.43 30.75 256.58 256.6 201.96 311.26 107.48 405.7 106.28 405.7 106.28 406.89 30.19 482.99 482.43 482.99 483.01 482.99 482.43 482.41"/>
+</svg>

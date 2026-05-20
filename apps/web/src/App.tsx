@@ -1,135 +1,235 @@
-import { CheckCircle2, Loader2, Server, WalletCards, XCircle } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+	type BestMarketRatesDto,
+	type BestRateOperation,
+	type BootstrapDto,
+	type CityDto,
+	type CountryDto,
+	fetchBestMarketRates,
+	fetchBootstrap,
+	fetchCities,
+	fetchCountries,
+	isAbortError
+} from "@/api/exchange";
+import { type AppRoute, AppShell } from "@/components/exchange/app-shell";
+import { DashboardPage } from "@/components/exchange/dashboard-page";
+import { HistoryPage } from "@/components/exchange/history-page";
+import { detectUiLocale, persistUiLocale, type TranslationKey, translate, type UiLocale } from "@/i18n";
 
-type ApiStatus = "idle" | "loading" | "success" | "error";
+const defaultCountry = "MD";
+const defaultCity = "chisinau";
+const defaultCurrency = "EUR";
 
-type ApiResult = {
-	message: string;
-	raw: string;
-};
-
-function getDefaultApiBaseUrl() {
-	const localHosts = new Set(["localhost", "127.0.0.1", "::1"]);
-
-	if (localHosts.has(window.location.hostname)) {
-		return "http://localhost:8080";
-	}
-
-	return "";
+function routeFromPathname(pathname: string): AppRoute {
+	return pathname === "/history" ? "history" : "dashboard";
 }
 
-async function requestApiPing() {
-	const response = await fetch(`${getDefaultApiBaseUrl()}/api/ping`);
-	const data: unknown = await response.json();
+function pathnameForRoute(route: AppRoute) {
+	return route === "history" ? "/history" : "/";
+}
 
-	if (!response.ok) {
-		throw new Error(`API returned ${response.status}`);
-	}
-
-	if (!data || typeof data !== "object" || !("message" in data) || typeof data.message !== "string") {
-		throw new Error("API response did not match the expected shape");
-	}
-
-	return {
-		message: data.message,
-		raw: JSON.stringify(data, null, 2)
-	};
+function getStoredValue(key: string, fallback: string) {
+	return window.localStorage.getItem(key) ?? fallback;
 }
 
 export function App() {
-	const [apiResult, setApiResult] = useState<ApiResult | null>(null);
-	const [errorMessage, setErrorMessage] = useState<string | null>(null);
-	const [status, setStatus] = useState<ApiStatus>("idle");
+	const [locale, setLocale] = useState<UiLocale>(() => detectUiLocale());
+	const [route, setRoute] = useState<AppRoute>(() => routeFromPathname(window.location.pathname));
+	const [country, setCountry] = useState(() => getStoredValue("magical-exchange.country", defaultCountry));
+	const [city, setCity] = useState(() => getStoredValue("magical-exchange.city", defaultCity));
+	const [selectedCurrency, setSelectedCurrency] = useState(() => getStoredValue("magical-exchange.currency", defaultCurrency));
+	const [operation, setOperation] = useState<BestRateOperation>("BUY_FOREIGN_CURRENCY");
+	const [refreshToken, setRefreshToken] = useState(0);
+	const [countries, setCountries] = useState<CountryDto[]>([]);
+	const [cities, setCities] = useState<CityDto[]>([]);
+	const [bootstrap, setBootstrap] = useState<BootstrapDto | null>(null);
+	const [bestRates, setBestRates] = useState<BestMarketRatesDto | null>(null);
+	const [isBootstrapLoading, setIsBootstrapLoading] = useState(false);
+	const [isBestLoading, setIsBestLoading] = useState(false);
+	const [bootstrapError, setBootstrapError] = useState<string | null>(null);
+	const [bestError, setBestError] = useState<string | null>(null);
+	const t = useCallback((key: TranslationKey) => translate(locale, key), [locale]);
 
-	async function handleApiCheck() {
-		setStatus("loading");
-		setErrorMessage(null);
-
-		try {
-			const result = await requestApiPing();
-			setApiResult(result);
-			setStatus("success");
-		} catch (error) {
-			setApiResult(null);
-			setErrorMessage(error instanceof Error ? error.message : "Unknown API error");
-			setStatus("error");
+	useEffect(() => {
+		function handlePopState() {
+			setRoute(routeFromPathname(window.location.pathname));
 		}
+
+		window.addEventListener("popstate", handlePopState);
+
+		return () => window.removeEventListener("popstate", handlePopState);
+	}, []);
+
+	useEffect(() => {
+		persistUiLocale(locale);
+	}, [locale]);
+
+	useEffect(() => {
+		window.localStorage.setItem("magical-exchange.country", country);
+	}, [country]);
+
+	useEffect(() => {
+		window.localStorage.setItem("magical-exchange.city", city);
+	}, [city]);
+
+	useEffect(() => {
+		window.localStorage.setItem("magical-exchange.currency", selectedCurrency);
+	}, [selectedCurrency]);
+
+	useEffect(() => {
+		const controller = new AbortController();
+		void refreshToken;
+
+		fetchCountries(locale, { signal: controller.signal })
+			.then(setCountries)
+			.catch((caughtError: unknown) => {
+				if (!isAbortError(caughtError)) {
+					setCountries([]);
+				}
+			});
+
+		return () => controller.abort();
+	}, [locale, refreshToken]);
+
+	useEffect(() => {
+		const controller = new AbortController();
+		void refreshToken;
+
+		fetchCities(country, locale, { signal: controller.signal })
+			.then((nextCities) => {
+				setCities(nextCities);
+				setCity((currentCity) => {
+					if (nextCities.some((item) => item.slug === currentCity)) {
+						return currentCity;
+					}
+
+					return nextCities[0]?.slug ?? currentCity;
+				});
+			})
+			.catch((caughtError: unknown) => {
+				if (!isAbortError(caughtError)) {
+					setCities([]);
+				}
+			});
+
+		return () => controller.abort();
+	}, [country, locale, refreshToken]);
+
+	useEffect(() => {
+		const controller = new AbortController();
+		void refreshToken;
+
+		setIsBootstrapLoading(true);
+		setBootstrapError(null);
+		setBootstrap(null);
+
+		fetchBootstrap(country, city, locale, { signal: controller.signal })
+			.then((nextBootstrap) => {
+				setBootstrap(nextBootstrap);
+				setIsBootstrapLoading(false);
+			})
+			.catch((caughtError: unknown) => {
+				if (!isAbortError(caughtError)) {
+					setBootstrapError(caughtError instanceof Error ? caughtError.message : "Unknown API error");
+					setBootstrap(null);
+					setIsBootstrapLoading(false);
+				}
+			});
+
+		return () => controller.abort();
+	}, [city, country, locale, refreshToken]);
+
+	useEffect(() => {
+		if (!bootstrap) {
+			return;
+		}
+
+		const foreignCurrencies = bootstrap.currencies.filter((currency) => currency.code !== bootstrap.country.baseCurrencyCode);
+
+		if (foreignCurrencies.length > 0 && !foreignCurrencies.some((currency) => currency.code === selectedCurrency)) {
+			setSelectedCurrency(foreignCurrencies[0]?.code ?? defaultCurrency);
+		}
+	}, [bootstrap, selectedCurrency]);
+
+	useEffect(() => {
+		const controller = new AbortController();
+		void refreshToken;
+
+		setBestError(null);
+		setIsBestLoading(true);
+		setBestRates(null);
+
+		fetchBestMarketRates(country, city, selectedCurrency, operation, locale, { signal: controller.signal })
+			.then((nextRates) => {
+				setBestRates(nextRates);
+				setIsBestLoading(false);
+			})
+			.catch((caughtError: unknown) => {
+				if (!isAbortError(caughtError)) {
+					setBestError(caughtError instanceof Error ? caughtError.message : "Unknown API error");
+					setBestRates(null);
+					setIsBestLoading(false);
+				}
+			});
+
+		return () => controller.abort();
+	}, [city, country, locale, operation, refreshToken, selectedCurrency]);
+
+	function navigate(nextRoute: AppRoute) {
+		const nextPathname = pathnameForRoute(nextRoute);
+
+		if (window.location.pathname !== nextPathname) {
+			window.history.pushState(null, "", nextPathname);
+		}
+
+		setRoute(nextRoute);
 	}
 
-	const isLoading = status === "loading";
+	function refresh() {
+		setRefreshToken((currentToken) => currentToken + 1);
+	}
 
 	return (
-		<main className="min-h-screen px-5 py-8 sm:px-8 lg:px-12">
-			<section className="mx-auto flex w-full max-w-5xl flex-col gap-6">
-				<div className="flex flex-col gap-3">
-					<div className="flex items-center gap-3 text-primary">
-						<div className="flex size-10 items-center justify-center rounded-md bg-primary text-primary-foreground">
-							<WalletCards className="size-5" />
-						</div>
-						<span className="font-medium text-sm">Magical Exchange</span>
-					</div>
-					<div className="max-w-3xl">
-						<h1 className="font-semibold text-3xl tracking-normal sm:text-4xl">Web smoke test</h1>
-						<p className="mt-3 text-muted-foreground">
-							React, Tailwind, shadcn-style components, and the Spring API are wired together for the first deployment pass.
-						</p>
-					</div>
-				</div>
-
-				<div className="grid gap-4 md:grid-cols-[1fr_1.15fr]">
-					<Card>
-						<CardHeader>
-							<CardTitle>Frontend</CardTitle>
-							<CardDescription>Bun serves this React page directly from the HTML entrypoint.</CardDescription>
-						</CardHeader>
-						<CardContent className="grid gap-3 text-sm">
-							<div className="flex items-center justify-between rounded-md border px-3 py-2">
-								<span className="text-muted-foreground">Renderer</span>
-								<span className="font-medium">React TSX</span>
-							</div>
-							<div className="flex items-center justify-between rounded-md border px-3 py-2">
-								<span className="text-muted-foreground">Styling</span>
-								<span className="font-medium">Tailwind + shadcn</span>
-							</div>
-						</CardContent>
-					</Card>
-
-					<Card>
-						<CardHeader>
-							<CardTitle>API check</CardTitle>
-							<CardDescription>The button calls the backend ping endpoint and prints the JSON response.</CardDescription>
-						</CardHeader>
-						<CardContent className="flex flex-col gap-4">
-							<div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-								<Button
-									disabled={isLoading}
-									onClick={handleApiCheck}
-								>
-									{isLoading ? <Loader2 className="size-4 animate-spin" /> : <Server className="size-4" />}
-									Check API
-								</Button>
-								<div className="flex items-center gap-2 text-sm">
-									{status === "success" && <CheckCircle2 className="size-4 text-primary" />}
-									{status === "error" && <XCircle className="size-4 text-red-600" />}
-									<span className="text-muted-foreground">
-										{status === "idle" && "Waiting for a request"}
-										{status === "loading" && "Requesting /api/ping"}
-										{status === "success" && `API says ${apiResult?.message}`}
-										{status === "error" && errorMessage}
-									</span>
-								</div>
-							</div>
-
-							<pre className="min-h-28 overflow-x-auto rounded-md border bg-muted p-4 text-sm">
-								{apiResult?.raw ?? '{\n  "message": "Click Check API"\n}'}
-							</pre>
-						</CardContent>
-					</Card>
-				</div>
-			</section>
-		</main>
+		<AppShell
+			cities={cities}
+			city={city}
+			countries={countries}
+			country={country}
+			locale={locale}
+			onCityChange={setCity}
+			onCountryChange={setCountry}
+			onLocaleChange={setLocale}
+			onNavigate={navigate}
+			onRefresh={refresh}
+			route={route}
+			t={t}
+		>
+			{route === "dashboard" ? (
+				<DashboardPage
+					bestRates={bestRates}
+					bootstrap={bootstrap}
+					error={bootstrapError ?? bestError}
+					isBestLoading={isBestLoading}
+					isLoading={isBootstrapLoading}
+					locale={locale}
+					onOperationChange={setOperation}
+					onRefresh={refresh}
+					onSelectedCurrencyChange={setSelectedCurrency}
+					operation={operation}
+					selectedCurrency={selectedCurrency}
+					t={t}
+				/>
+			) : (
+				<HistoryPage
+					bootstrap={bootstrap}
+					country={country}
+					locale={locale}
+					onSelectedCurrencyChange={setSelectedCurrency}
+					selectedCurrency={selectedCurrency}
+					t={t}
+				/>
+			)}
+		</AppShell>
 	);
 }
