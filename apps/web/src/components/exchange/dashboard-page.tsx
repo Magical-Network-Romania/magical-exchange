@@ -1,54 +1,57 @@
 import { Building2, CalendarDays, MapPin, RefreshCw, TrendingDown, TrendingUp } from "lucide-react";
 import { type ReactNode, useMemo, useState } from "react";
 
-import type { BestMarketRatesDto, BestRateOperation, BootstrapDto, CurrencyDto, LocationDto, MarketRateDto } from "@/api/exchange";
+import type { BootstrapDto, CurrencyDto, LocationDto, MarketRateDto } from "@/api/exchange";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { InputField, SelectField } from "@/components/ui/field";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCompactNumber, formatDate, formatDateTime, formatRate } from "@/format";
 import type { TranslationKey, UiLocale } from "@/i18n";
+import { cn } from "@/lib/utils";
 import { LocationDialog } from "./location-dialog";
 
 type DashboardPageProps = {
-	bestRates: BestMarketRatesDto | null;
 	bootstrap: BootstrapDto | null;
 	error: string | null;
-	isBestLoading: boolean;
 	isLoading: boolean;
 	locale: UiLocale;
-	onOperationChange: (operation: BestRateOperation) => void;
 	onRefresh: () => void;
 	onSelectedCurrencyChange: (currency: string) => void;
-	operation: BestRateOperation;
 	selectedCurrency: string;
 	t: (key: TranslationKey) => string;
 };
 
+type RateOfferKind = "buy" | "sell";
+
+type RateOffer = {
+	rate: MarketRateDto;
+	value: number;
+};
+
 export function DashboardPage({
-	bestRates,
 	bootstrap,
 	error,
-	isBestLoading,
 	isLoading,
 	locale,
-	onOperationChange,
 	onRefresh,
 	onSelectedCurrencyChange,
-	operation,
 	selectedCurrency,
 	t
 }: DashboardPageProps) {
-	const [amount, setAmount] = useState("100");
+	const [baseAmount, setBaseAmount] = useState("1000");
+	const [foreignAmount, setForeignAmount] = useState("1");
 	const [selectedLocation, setSelectedLocation] = useState<LocationDto | null>(null);
-	const officialRate = bootstrap?.officialRates.rates.find((rate) => rate.currency.code === selectedCurrency) ?? null;
-	const amountNumber = Number(amount);
-	const unitRate = officialRate ? officialRate.rate / officialRate.unit : null;
 	const currencyOptions = getForeignCurrencyOptions(bootstrap);
-	const groupedMarketRates = useMemo(() => groupMarketRates(bootstrap?.marketRates ?? []), [bootstrap]);
+	const selectedRates = useMemo(() => ratesForCurrency(bootstrap?.marketRates ?? [], selectedCurrency), [bootstrap, selectedCurrency]);
+	const buyOffers = useMemo(() => buildRateOffers(selectedRates, "buy"), [selectedRates]);
+	const sellOffers = useMemo(() => buildRateOffers(selectedRates, "sell"), [selectedRates]);
+	const bestBuyOffer = buyOffers[0] ?? null;
+	const bestSellOffer = sellOffers[0] ?? null;
+	const baseAmountNumber = parseAmount(baseAmount);
+	const foreignAmountNumber = parseAmount(foreignAmount);
 
 	if (isLoading && !bootstrap) {
 		return <DashboardSkeleton />;
@@ -76,239 +79,135 @@ export function DashboardPage({
 		return <EmptyState>{t("statusNoData")}</EmptyState>;
 	}
 
+	const baseCurrency = bootstrap.country.baseCurrencyCode;
+	const buyResult = bestBuyOffer ? convertBaseToForeign(baseAmountNumber, bestBuyOffer.rate) : null;
+	const sellResult = bestSellOffer ? convertForeignToBase(foreignAmountNumber, bestSellOffer.rate) : null;
+
 	return (
 		<div className="grid gap-6">
-			<section className="grid gap-3">
+			<section className="grid gap-4">
 				<div className="max-w-3xl">
 					<h1 className="font-semibold text-3xl sm:text-4xl">{t("dashboardTitle")}</h1>
 					<p className="mt-2 text-muted-foreground">{t("dashboardSubtitle")}</p>
 				</div>
-				<div className="grid gap-3 md:grid-cols-4">
-					<MetricCard
-						icon={<CalendarDays className="size-4" />}
-						label={t("latestOfficialDate")}
-						value={formatDate(bootstrap.officialRates.rateDate, locale)}
-					/>
-					<MetricCard
-						icon={<Building2 className="size-4" />}
-						label={t("locations")}
-						value={formatCompactNumber(bootstrap.locations.length, locale)}
-					/>
-					<MetricCard
-						icon={<TrendingUp className="size-4" />}
-						label={t("marketRates")}
-						value={formatCompactNumber(bootstrap.marketRates.length, locale)}
-					/>
-					<MetricCard
-						icon={<MapPin className="size-4" />}
-						label={t("baseCurrency")}
-						value={bootstrap.country.baseCurrencyCode}
-					/>
-				</div>
-			</section>
 
-			<section className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
 				<Card>
 					<CardHeader>
-						<CardTitle>{t("cardOfficialTitle")}</CardTitle>
-						<CardDescription>{t("cardOfficialDescription")}</CardDescription>
-					</CardHeader>
-					<CardContent>
-						{bootstrap.officialRates.rates.length === 0 ? (
-							<EmptyState>{t("emptyOfficialRates")}</EmptyState>
-						) : (
-							<Table>
-								<TableHeader>
-									<TableRow>
-										<TableHead>{t("currency")}</TableHead>
-										<TableHead>{t("unit")}</TableHead>
-										<TableHead>{t("rate")}</TableHead>
-									</TableRow>
-								</TableHeader>
-								<TableBody>
-									{bootstrap.officialRates.rates.map((rate) => (
-										<TableRow key={rate.currency.code}>
-											<TableCell>
-												<div className="font-medium">{rate.currency.code}</div>
-												<div className="text-muted-foreground text-xs">{rate.currency.name}</div>
-											</TableCell>
-											<TableCell>{rate.unit}</TableCell>
-											<TableCell className="font-semibold">{formatRate(rate.rate, locale)}</TableCell>
-										</TableRow>
-									))}
-								</TableBody>
-							</Table>
-						)}
-					</CardContent>
-				</Card>
-
-				<div className="grid gap-6">
-					<Card>
-						<CardHeader>
-							<CardTitle>{t("converter")}</CardTitle>
-							<CardDescription>
-								{bootstrap.country.baseCurrencyCode} / {selectedCurrency}
-							</CardDescription>
-						</CardHeader>
-						<CardContent className="grid gap-4">
-							<div className="grid gap-3 sm:grid-cols-2">
-								<InputField
-									inputMode="decimal"
-									label={t("amount")}
-									onChange={(event) => setAmount(event.target.value)}
-									type="number"
-									value={amount}
-								/>
-								<SelectField
-									label={t("currency")}
-									onValueChange={onSelectedCurrencyChange}
-									options={currencyOptions}
-									value={selectedCurrency}
-								/>
+						<div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+							<div>
+								<CardTitle>{t("converter")}</CardTitle>
+								<CardDescription>
+									{bootstrap.city.name}, {bootstrap.country.name} · {t("baseSideLocked")}
+								</CardDescription>
 							</div>
-							{unitRate && !Number.isNaN(amountNumber) ? (
-								<div className="grid gap-3 sm:grid-cols-2">
-									<ConversionResult
-										label={`${amount} ${bootstrap.country.baseCurrencyCode}`}
-										value={`${formatRate(amountNumber / unitRate, locale)} ${selectedCurrency}`}
-									/>
-									<ConversionResult
-										label={`${amount} ${selectedCurrency}`}
-										value={`${formatRate(amountNumber * unitRate, locale)} ${bootstrap.country.baseCurrencyCode}`}
-									/>
-								</div>
-							) : (
-								<EmptyState>{t("noConverterRate")}</EmptyState>
-							)}
-						</CardContent>
-					</Card>
-
-					<Card>
-						<CardHeader>
-							<div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-								<div>
-									<CardTitle>{t("bestOffers")}</CardTitle>
-									<CardDescription>{selectedCurrency} · CASH</CardDescription>
-								</div>
-								<div className="flex flex-wrap gap-2">
-									<OperationButton
-										active={operation === "BUY_FOREIGN_CURRENCY"}
-										icon={<TrendingDown className="size-4" />}
-										label={t("buyForeign")}
-										onClick={() => onOperationChange("BUY_FOREIGN_CURRENCY")}
-									/>
-									<OperationButton
-										active={operation === "SELL_FOREIGN_CURRENCY"}
-										icon={<TrendingUp className="size-4" />}
-										label={t("sellForeign")}
-										onClick={() => onOperationChange("SELL_FOREIGN_CURRENCY")}
-									/>
-								</div>
-							</div>
-						</CardHeader>
-						<CardContent>
-							<BestRatesList
-								bestRates={bestRates}
-								isLoading={isBestLoading}
-								locale={locale}
-								operation={operation}
-								t={t}
+							<CurrencyRail
+								onSelectedCurrencyChange={onSelectedCurrencyChange}
+								options={currencyOptions}
+								selectedCurrency={selectedCurrency}
 							/>
-						</CardContent>
-					</Card>
-				</div>
+						</div>
+					</CardHeader>
+					<CardContent className="grid gap-4 lg:grid-cols-2">
+						<ExchangePanel
+							baseCurrency={baseCurrency}
+							emptyLabel={t("noMarketRatesForCurrency")}
+							foreignCurrency={selectedCurrency}
+							heading={`${t("bestBuyCaption")} 1 ${selectedCurrency}`}
+							icon={<TrendingDown className="size-4" />}
+							inputCurrency={baseCurrency}
+							inputLabel={t("youPay")}
+							inputValue={baseAmount}
+							kind="buy"
+							locale={locale}
+							onInputChange={setBaseAmount}
+							onLocationSelect={setSelectedLocation}
+							offers={buyOffers}
+							outputCurrency={selectedCurrency}
+							outputLabel={t("youReceive")}
+							outputValue={formatConvertedAmount(buyResult, locale)}
+							title={t("buyForeign")}
+							t={t}
+						/>
+						<ExchangePanel
+							baseCurrency={baseCurrency}
+							emptyLabel={t("noMarketRatesForCurrency")}
+							foreignCurrency={selectedCurrency}
+							heading={`${t("bestSellCaption")} 1 ${selectedCurrency}`}
+							icon={<TrendingUp className="size-4" />}
+							inputCurrency={selectedCurrency}
+							inputLabel={t("youPay")}
+							inputValue={foreignAmount}
+							kind="sell"
+							locale={locale}
+							onInputChange={setForeignAmount}
+							onLocationSelect={setSelectedLocation}
+							offers={sellOffers}
+							outputCurrency={baseCurrency}
+							outputLabel={t("youReceive")}
+							outputValue={formatConvertedAmount(sellResult, locale)}
+							title={t("sellForeign")}
+							t={t}
+						/>
+					</CardContent>
+				</Card>
 			</section>
 
-			<section className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
-				<Card>
-					<CardHeader>
-						<CardTitle>{t("marketRates")}</CardTitle>
-						<CardDescription>
-							{bootstrap.city.name}, {bootstrap.country.name}
-						</CardDescription>
-					</CardHeader>
-					<CardContent>
-						{groupedMarketRates.length === 0 ? (
-							<EmptyState>{t("emptyMarketRates")}</EmptyState>
-						) : (
-							<div className="grid gap-4">
-								{groupedMarketRates.map((group) => (
-									<div
-										className="rounded-lg border"
-										key={group.location.id}
-									>
-										<div className="flex flex-col gap-3 border-border border-b p-4 sm:flex-row sm:items-center sm:justify-between">
-											<div>
-												<div className="font-semibold">{group.location.name}</div>
-												<div className="text-muted-foreground text-sm">{group.location.address}</div>
-											</div>
-											<Button
-												onClick={() => setSelectedLocation(group.location)}
-												type="button"
-												variant="outline"
-											>
-												{t("details")}
-											</Button>
-										</div>
-										<Table>
-											<TableHeader>
-												<TableRow>
-													<TableHead>{t("currency")}</TableHead>
-													<TableHead>{t("buy")}</TableHead>
-													<TableHead>{t("sell")}</TableHead>
-													<TableHead>{t("fetched")}</TableHead>
-												</TableRow>
-											</TableHeader>
-											<TableBody>
-												{group.rates.map((rate) => (
-													<TableRow key={`${rate.location.id}-${rate.currency.code}-${rate.rateType}`}>
-														<TableCell>
-															<div className="font-medium">{rate.currency.code}</div>
-															<div className="text-muted-foreground text-xs">{rate.currency.name}</div>
-														</TableCell>
-														<TableCell>{formatRate(rate.buyRate, locale)}</TableCell>
-														<TableCell>{formatRate(rate.sellRate, locale)}</TableCell>
-														<TableCell>{formatDateTime(rate.fetchedAt, locale)}</TableCell>
-													</TableRow>
-												))}
-											</TableBody>
-										</Table>
-									</div>
+			<section className="grid gap-3 md:grid-cols-4">
+				<MetricCard
+					icon={<CalendarDays className="size-4" />}
+					label={t("latestOfficialDate")}
+					value={formatDate(bootstrap.officialRates.rateDate, locale)}
+				/>
+				<MetricCard
+					icon={<Building2 className="size-4" />}
+					label={t("locations")}
+					value={formatCompactNumber(bootstrap.locations.length, locale)}
+				/>
+				<MetricCard
+					icon={<TrendingUp className="size-4" />}
+					label={t("marketRates")}
+					value={formatCompactNumber(bootstrap.marketRates.length, locale)}
+				/>
+				<MetricCard
+					icon={<MapPin className="size-4" />}
+					label={t("baseCurrency")}
+					value={baseCurrency}
+				/>
+			</section>
+
+			<Card>
+				<CardHeader>
+					<CardTitle>{t("cardOfficialTitle")}</CardTitle>
+					<CardDescription>{t("cardOfficialDescription")}</CardDescription>
+				</CardHeader>
+				<CardContent>
+					{bootstrap.officialRates.rates.length === 0 ? (
+						<EmptyState>{t("emptyOfficialRates")}</EmptyState>
+					) : (
+						<Table>
+							<TableHeader>
+								<TableRow>
+									<TableHead>{t("currency")}</TableHead>
+									<TableHead>{t("unit")}</TableHead>
+									<TableHead>{t("rate")}</TableHead>
+								</TableRow>
+							</TableHeader>
+							<TableBody>
+								{bootstrap.officialRates.rates.map((rate) => (
+									<TableRow key={rate.currency.code}>
+										<TableCell>
+											<div className="font-medium">{rate.currency.code}</div>
+											<div className="text-muted-foreground text-xs">{rate.currency.name}</div>
+										</TableCell>
+										<TableCell>{rate.unit}</TableCell>
+										<TableCell className="font-semibold">{formatRate(rate.rate, locale)}</TableCell>
+									</TableRow>
 								))}
-							</div>
-						)}
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardHeader>
-						<CardTitle>{t("locations")}</CardTitle>
-						<CardDescription>{bootstrap.city.name}</CardDescription>
-					</CardHeader>
-					<CardContent className="grid gap-3">
-						{bootstrap.locations.length === 0 ? (
-							<EmptyState>{t("emptyLocations")}</EmptyState>
-						) : (
-							bootstrap.locations.map((location) => (
-								<button
-									className="rounded-lg border bg-card p-3 text-left transition-colors hover:bg-muted/45"
-									key={location.id}
-									onClick={() => setSelectedLocation(location)}
-									type="button"
-								>
-									<div className="flex items-start justify-between gap-3">
-										<div>
-											<div className="font-medium">{location.name}</div>
-											<div className="mt-1 text-muted-foreground text-sm">{location.address}</div>
-										</div>
-										<Badge tone="secondary">{location.institution.name}</Badge>
-									</div>
-								</button>
-							))
-						)}
-					</CardContent>
-				</Card>
-			</section>
+							</TableBody>
+						</Table>
+					)}
+				</CardContent>
+			</Card>
 
 			<LocationDialog
 				location={selectedLocation}
@@ -335,6 +234,191 @@ function DashboardSkeleton() {
 	);
 }
 
+type CurrencyRailProps = {
+	onSelectedCurrencyChange: (currency: string) => void;
+	options: { label: string; value: string }[];
+	selectedCurrency: string;
+};
+
+function CurrencyRail({ onSelectedCurrencyChange, options, selectedCurrency }: CurrencyRailProps) {
+	return (
+		<div className="flex max-w-full gap-1 overflow-x-auto rounded-md border bg-muted/35 p-1">
+			{options.map((option) => (
+				<Button
+					className={cn("h-9 px-3", option.value !== selectedCurrency && "bg-card")}
+					key={option.value}
+					onClick={() => onSelectedCurrencyChange(option.value)}
+					type="button"
+					variant={option.value === selectedCurrency ? "default" : "ghost"}
+				>
+					{option.value}
+				</Button>
+			))}
+		</div>
+	);
+}
+
+type ExchangePanelProps = {
+	baseCurrency: string;
+	emptyLabel: string;
+	foreignCurrency: string;
+	heading: string;
+	icon: ReactNode;
+	inputCurrency: string;
+	inputLabel: string;
+	inputValue: string;
+	kind: RateOfferKind;
+	locale: UiLocale;
+	onInputChange: (value: string) => void;
+	onLocationSelect: (location: LocationDto) => void;
+	offers: RateOffer[];
+	outputCurrency: string;
+	outputLabel: string;
+	outputValue: string;
+	t: (key: TranslationKey) => string;
+	title: string;
+};
+
+function ExchangePanel({
+	baseCurrency,
+	emptyLabel,
+	foreignCurrency,
+	heading,
+	icon,
+	inputCurrency,
+	inputLabel,
+	inputValue,
+	kind,
+	locale,
+	onInputChange,
+	onLocationSelect,
+	offers,
+	outputCurrency,
+	outputLabel,
+	outputValue,
+	t,
+	title
+}: ExchangePanelProps) {
+	const bestRate = offers[0]?.rate ?? null;
+
+	return (
+		<div className="grid gap-4 rounded-lg border bg-card p-4">
+			<div className="flex items-center gap-2">
+				<span className="inline-flex size-9 items-center justify-center rounded-md bg-secondary text-secondary-foreground">{icon}</span>
+				<div>
+					<h2 className="font-semibold text-lg">{title}</h2>
+					<div className="text-muted-foreground text-sm">{formatBestRate(bestRate, kind, baseCurrency, foreignCurrency, locale)}</div>
+				</div>
+			</div>
+
+			<div className="grid items-end gap-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+				<AmountBox
+					currency={inputCurrency}
+					label={inputLabel}
+					onChange={onInputChange}
+					value={inputValue}
+				/>
+				<div className="flex h-12 items-center justify-center font-semibold text-2xl text-muted-foreground">=</div>
+				<AmountBox
+					currency={outputCurrency}
+					label={outputLabel}
+					readOnly
+					value={outputValue}
+				/>
+			</div>
+
+			<RateOfferList
+				baseCurrency={baseCurrency}
+				emptyLabel={emptyLabel}
+				heading={heading}
+				kind={kind}
+				locale={locale}
+				onLocationSelect={onLocationSelect}
+				offers={offers}
+				t={t}
+			/>
+		</div>
+	);
+}
+
+type AmountBoxProps = {
+	currency: string;
+	label: string;
+	onChange?: (value: string) => void;
+	readOnly?: boolean;
+	value: string;
+};
+
+function AmountBox({ currency, label, onChange, readOnly = false, value }: AmountBoxProps) {
+	return (
+		<label className="grid min-w-0 gap-1.5 text-sm">
+			<span className="font-medium text-muted-foreground text-xs uppercase">{label}</span>
+			<span className={cn("grid h-12 grid-cols-[minmax(0,1fr)_auto] overflow-hidden rounded-md border bg-card", readOnly && "bg-muted/40")}>
+				<input
+					aria-label={`${label} ${currency}`}
+					className="min-w-0 bg-transparent px-3 text-right font-medium text-lg outline-none"
+					inputMode="decimal"
+					onChange={(event) => onChange?.(event.target.value)}
+					readOnly={readOnly}
+					type="text"
+					value={value}
+				/>
+				<span className="flex min-w-14 items-center justify-center border-border border-l bg-muted px-3 font-semibold text-sm">
+					{currency}
+				</span>
+			</span>
+		</label>
+	);
+}
+
+type RateOfferListProps = {
+	baseCurrency: string;
+	emptyLabel: string;
+	heading: string;
+	kind: RateOfferKind;
+	locale: UiLocale;
+	onLocationSelect: (location: LocationDto) => void;
+	offers: RateOffer[];
+	t: (key: TranslationKey) => string;
+};
+
+function RateOfferList({ baseCurrency, emptyLabel, heading, locale, onLocationSelect, offers, t }: RateOfferListProps) {
+	if (offers.length === 0) {
+		return <EmptyState>{emptyLabel}</EmptyState>;
+	}
+
+	return (
+		<div className="grid gap-2">
+			<div className="font-semibold text-sm">{heading}</div>
+			<div className="overflow-hidden rounded-md border">
+				{offers.map((offer, index) => (
+					<button
+						className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-border border-b px-3 py-3 text-left transition-colors last:border-b-0 hover:bg-muted/40"
+						key={`${offer.rate.location.id}-${offer.rate.currency.code}-${offer.rate.rateType}-${offer.value}`}
+						onClick={() => onLocationSelect(offer.rate.location)}
+						type="button"
+					>
+						<span className="min-w-0">
+							<span className="flex flex-wrap items-center gap-1.5">
+								<span className="font-semibold text-primary">{offer.rate.institution.name}</span>
+								<MapPin className="size-3 text-muted-foreground" />
+								{index === 0 && <Badge tone="positive">{t("bestRate")}</Badge>}
+							</span>
+							<span className="block truncate text-muted-foreground text-xs">{offer.rate.location.name}</span>
+						</span>
+						<span className="text-right">
+							<span className="block font-semibold">
+								{formatRate(offer.value, locale)} {baseCurrency}
+							</span>
+							<span className="block text-muted-foreground text-xs">{formatDateTime(offer.rate.fetchedAt, locale)}</span>
+						</span>
+					</button>
+				))}
+			</div>
+		</div>
+	);
+}
+
 type MetricCardProps = {
 	icon: ReactNode;
 	label: string;
@@ -353,95 +437,6 @@ function MetricCard({ icon, label, value }: MetricCardProps) {
 	);
 }
 
-type ConversionResultProps = {
-	label: string;
-	value: string;
-};
-
-function ConversionResult({ label, value }: ConversionResultProps) {
-	return (
-		<div className="rounded-lg border bg-muted/30 p-4">
-			<div className="text-muted-foreground text-sm">{label}</div>
-			<div className="mt-1 font-semibold text-2xl">{value}</div>
-		</div>
-	);
-}
-
-type OperationButtonProps = {
-	active: boolean;
-	icon: ReactNode;
-	label: string;
-	onClick: () => void;
-};
-
-function OperationButton({ active, icon, label, onClick }: OperationButtonProps) {
-	return (
-		<Button
-			onClick={onClick}
-			type="button"
-			variant={active ? "default" : "outline"}
-		>
-			{icon}
-			{label}
-		</Button>
-	);
-}
-
-type BestRatesListProps = {
-	bestRates: BestMarketRatesDto | null;
-	isLoading: boolean;
-	locale: UiLocale;
-	operation: BestRateOperation;
-	t: (key: TranslationKey) => string;
-};
-
-function BestRatesList({ bestRates, isLoading, locale, operation, t }: BestRatesListProps) {
-	if (isLoading) {
-		return (
-			<div className="grid gap-3">
-				<Skeleton className="h-16" />
-				<Skeleton className="h-16" />
-				<Skeleton className="h-16" />
-			</div>
-		);
-	}
-
-	if (!bestRates || bestRates.rates.length === 0) {
-		return <EmptyState>{t("emptyBestRates")}</EmptyState>;
-	}
-
-	const displayRates = bestRates.rates.slice(0, 5);
-
-	return (
-		<div className="grid gap-3">
-			{displayRates.map((rate) => {
-				const bestValue = operation === "BUY_FOREIGN_CURRENCY" ? rate.sellRate : rate.buyRate;
-
-				return (
-					<div
-						className="flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between"
-						key={`${rate.location.id}-${rate.currency.code}-${operation}`}
-					>
-						<div>
-							<div className="font-semibold">{rate.location.name}</div>
-							<div className="text-muted-foreground text-sm">{rate.institution.name}</div>
-						</div>
-						<div className="flex items-center gap-2">
-							<Badge tone="positive">{formatRate(bestValue, locale)}</Badge>
-							<span className="text-muted-foreground text-sm">{rate.currency.code}</span>
-						</div>
-					</div>
-				);
-			})}
-		</div>
-	);
-}
-
-type MarketRateGroup = {
-	location: LocationDto;
-	rates: MarketRateDto[];
-};
-
 function getForeignCurrencyOptions(bootstrap: BootstrapDto | null) {
 	if (!bootstrap) {
 		return [{ label: "EUR", value: "EUR" }];
@@ -457,24 +452,80 @@ function currencyOption(currency: CurrencyDto) {
 	};
 }
 
-function groupMarketRates(rates: MarketRateDto[]) {
-	const groups = new Map<string, MarketRateGroup>();
+function ratesForCurrency(rates: MarketRateDto[], currency: string) {
+	return rates.filter((rate) => rate.currency.code === currency);
+}
+
+function buildRateOffers(rates: MarketRateDto[], kind: RateOfferKind) {
+	const offers: RateOffer[] = [];
 
 	for (const rate of rates) {
-		const existingGroup = groups.get(rate.location.id);
+		const value = kind === "buy" ? rate.sellRate : rate.buyRate;
 
-		if (existingGroup) {
-			existingGroup.rates.push(rate);
-		} else {
-			groups.set(rate.location.id, {
-				location: rate.location,
-				rates: [rate]
-			});
+		if (value !== null) {
+			offers.push({ rate, value });
 		}
 	}
 
-	return [...groups.values()].map((group) => ({
-		...group,
-		rates: [...group.rates].sort((left, right) => left.currency.code.localeCompare(right.currency.code))
-	}));
+	return offers.sort((left, right) => compareRateOffers(left, right, kind));
+}
+
+function compareRateOffers(left: RateOffer, right: RateOffer, kind: RateOfferKind) {
+	const rateOrder = kind === "buy" ? left.value - right.value : right.value - left.value;
+
+	if (rateOrder !== 0) {
+		return rateOrder;
+	}
+
+	return left.rate.institution.name.localeCompare(right.rate.institution.name) || left.rate.location.name.localeCompare(right.rate.location.name);
+}
+
+function parseAmount(value: string) {
+	const normalizedValue = value.trim().replace(",", ".");
+
+	if (!normalizedValue) {
+		return null;
+	}
+
+	const parsedValue = Number(normalizedValue);
+
+	return Number.isFinite(parsedValue) ? parsedValue : null;
+}
+
+function convertBaseToForeign(amount: number | null, rate: MarketRateDto) {
+	if (amount === null || rate.sellRate === null || rate.sellRate <= 0) {
+		return null;
+	}
+
+	return (amount * rate.unit) / rate.sellRate;
+}
+
+function convertForeignToBase(amount: number | null, rate: MarketRateDto) {
+	if (amount === null || rate.buyRate === null || rate.buyRate <= 0) {
+		return null;
+	}
+
+	return (amount / rate.unit) * rate.buyRate;
+}
+
+function formatConvertedAmount(value: number | null, locale: UiLocale) {
+	if (value === null || !Number.isFinite(value)) {
+		return "—";
+	}
+
+	return formatRate(value, locale);
+}
+
+function formatBestRate(rate: MarketRateDto | null, kind: RateOfferKind, baseCurrency: string, foreignCurrency: string, locale: UiLocale) {
+	if (!rate) {
+		return "—";
+	}
+
+	const value = kind === "buy" ? rate.sellRate : rate.buyRate;
+
+	if (value === null) {
+		return "—";
+	}
+
+	return `${formatCompactNumber(rate.unit, locale)} ${foreignCurrency} = ${formatRate(value, locale)} ${baseCurrency}`;
 }

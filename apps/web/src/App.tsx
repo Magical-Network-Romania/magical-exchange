@@ -1,12 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 
 import {
-	type BestMarketRatesDto,
-	type BestRateOperation,
 	type BootstrapDto,
 	type CityDto,
 	type CountryDto,
-	fetchBestMarketRates,
 	fetchBootstrap,
 	fetchCities,
 	fetchCountries,
@@ -39,16 +36,12 @@ export function App() {
 	const [country, setCountry] = useState(() => getStoredValue("magical-exchange.country", defaultCountry));
 	const [city, setCity] = useState(() => getStoredValue("magical-exchange.city", defaultCity));
 	const [selectedCurrency, setSelectedCurrency] = useState(() => getStoredValue("magical-exchange.currency", defaultCurrency));
-	const [operation, setOperation] = useState<BestRateOperation>("BUY_FOREIGN_CURRENCY");
 	const [refreshToken, setRefreshToken] = useState(0);
 	const [countries, setCountries] = useState<CountryDto[]>([]);
 	const [cities, setCities] = useState<CityDto[]>([]);
 	const [bootstrap, setBootstrap] = useState<BootstrapDto | null>(null);
-	const [bestRates, setBestRates] = useState<BestMarketRatesDto | null>(null);
 	const [isBootstrapLoading, setIsBootstrapLoading] = useState(false);
-	const [isBestLoading, setIsBestLoading] = useState(false);
 	const [bootstrapError, setBootstrapError] = useState<string | null>(null);
-	const [bestError, setBestError] = useState<string | null>(null);
 	const t = useCallback((key: TranslationKey) => translate(locale, key), [locale]);
 
 	useEffect(() => {
@@ -152,30 +145,6 @@ export function App() {
 		}
 	}, [bootstrap, selectedCurrency]);
 
-	useEffect(() => {
-		const controller = new AbortController();
-		void refreshToken;
-
-		setBestError(null);
-		setIsBestLoading(true);
-		setBestRates(null);
-
-		fetchBestMarketRates(country, city, selectedCurrency, operation, locale, { signal: controller.signal })
-			.then((nextRates) => {
-				setBestRates(nextRates);
-				setIsBestLoading(false);
-			})
-			.catch((caughtError: unknown) => {
-				if (!isAbortError(caughtError)) {
-					setBestError(caughtError instanceof Error ? caughtError.message : "Unknown API error");
-					setBestRates(null);
-					setIsBestLoading(false);
-				}
-			});
-
-		return () => controller.abort();
-	}, [city, country, locale, operation, refreshToken, selectedCurrency]);
-
 	function navigate(nextRoute: AppRoute) {
 		const nextPathname = pathnameForRoute(nextRoute);
 
@@ -207,16 +176,12 @@ export function App() {
 		>
 			{route === "dashboard" ? (
 				<DashboardPage
-					bestRates={bestRates}
 					bootstrap={bootstrap}
-					error={bootstrapError ?? bestError}
-					isBestLoading={isBestLoading}
+					error={bootstrapError}
 					isLoading={isBootstrapLoading}
 					locale={locale}
-					onOperationChange={setOperation}
 					onRefresh={refresh}
 					onSelectedCurrencyChange={setSelectedCurrency}
-					operation={operation}
 					selectedCurrency={selectedCurrency}
 					t={t}
 				/>
