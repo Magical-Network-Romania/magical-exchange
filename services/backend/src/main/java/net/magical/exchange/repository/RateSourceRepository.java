@@ -40,6 +40,7 @@ public class RateSourceRepository {
 					country_code,
 					city_slug,
 					slug,
+					parser_key,
 					source_url,
 					rate_type
 				FROM due_rate_sources
@@ -78,16 +79,17 @@ public class RateSourceRepository {
 		String countryCode = resultSet.getString("country_code");
 		String citySlug = resultSet.getString("city_slug");
 		String slug = resultSet.getString("slug");
+		String parserKey = resultSet.getString("parser_key");
 		String sourceUrl = resultSet.getString("source_url");
 		String rateType = resultSet.getString("rate_type");
 
-		return new MarketRateSource(id, institutionId, locationId, countryCode, citySlug, slug, sourceUrl, rateType);
+		return new MarketRateSource(id, institutionId, locationId, countryCode, citySlug, slug, parserKey, sourceUrl, rateType);
 	}
 
 	public record OfficialRateSource(UUID id, String countryCode, String slug, String parserKey, String sourceUrl) {
 	}
 
 	public record MarketRateSource(UUID id, UUID institutionId, UUID locationId, String countryCode, String citySlug, String slug,
-			String sourceUrl, String rateType) {
+			String parserKey, String sourceUrl, String rateType) {
 	}
 }

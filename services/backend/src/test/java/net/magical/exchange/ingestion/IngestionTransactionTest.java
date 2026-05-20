@@ -44,7 +44,7 @@ class IngestionTransactionTest {
 		UUID sourceId = UUID.randomUUID();
 		UUID batchId = UUID.randomUUID();
 		MarketRateSource source = new MarketRateSource(sourceId, UUID.randomUUID(), null, "MD", "chisinau", "source",
-				"https://example.test", "CASH");
+				"generic-html", "https://example.test", "CASH");
 		List<MarketRateUpsert> rates = List
 				.of(new MarketRateUpsert("EUR", "CASH", new BigDecimal("19.10"), new BigDecimal("19.35"), null, 1));
 		DataIntegrityViolationException failure = new DataIntegrityViolationException("bad rate");
@@ -72,7 +72,7 @@ class IngestionTransactionTest {
 		UUID runId = UUID.randomUUID();
 		UUID sourceId = UUID.randomUUID();
 		MarketRateSource source = new MarketRateSource(sourceId, UUID.randomUUID(), null, "MD", "chisinau", "source",
-				"https://example.test", "CASH");
+				"generic-html", "https://example.test", "CASH");
 		List<MarketRateUpsert> rates = List
 				.of(new MarketRateUpsert("EUR", "CASH", new BigDecimal("19.10"), new BigDecimal("19.35"), null, 1));
 
