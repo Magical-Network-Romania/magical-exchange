@@ -57,9 +57,9 @@ export function MarketRatesPage({ bootstrap, error, isLoading, locale, onRefresh
 	}
 
 	return (
-		<div className="grid gap-6">
+		<div className="grid min-w-0 gap-6">
 			<section className="max-w-3xl">
-				<h1 className="font-semibold text-3xl sm:text-4xl">{t("allRatesTitle")}</h1>
+				<h1 className="font-semibold text-2xl sm:text-4xl">{t("allRatesTitle")}</h1>
 				<p className="mt-2 text-muted-foreground">
 					{bootstrap.city.name}, {bootstrap.country.name}
 				</p>
@@ -74,20 +74,22 @@ export function MarketRatesPage({ bootstrap, error, isLoading, locale, onRefresh
 					{groupedMarketRates.length === 0 ? (
 						<EmptyState>{t("emptyMarketRates")}</EmptyState>
 					) : (
-						<div className="grid gap-4">
+						<div className="grid min-w-0 gap-4">
 							{groupedMarketRates.map((group) => (
 								<div
-									className="overflow-hidden rounded-lg border bg-card"
+									className="min-w-0 overflow-hidden rounded-lg border bg-card"
 									key={group.location.id}
 								>
 									<button
-										className="flex w-full flex-col gap-3 border-border border-b p-4 text-left transition-colors hover:bg-muted/40 sm:flex-row sm:items-center sm:justify-between"
+										className="grid w-full grid-cols-1 gap-3 border-border border-b p-4 text-left transition-colors hover:bg-muted/40 sm:grid-cols-[minmax(0,1fr)_minmax(12rem,0.8fr)] sm:items-center"
 										onClick={() => setSelectedLocation(group.location)}
 										type="button"
 									>
 										<span className="min-w-0">
 											<span className="flex flex-wrap items-center gap-2">
-												<span className="font-semibold">{group.location.institution.name}</span>
+												<span className="min-w-0 wrap-break-word font-semibold">
+													{group.location.institution.name}
+												</span>
 												<Badge tone="secondary">{group.rates.length}</Badge>
 											</span>
 											<span className="mt-1 flex items-center gap-1 text-muted-foreground text-sm">
@@ -95,7 +97,9 @@ export function MarketRatesPage({ bootstrap, error, isLoading, locale, onRefresh
 												<span className="truncate">{group.location.name}</span>
 											</span>
 										</span>
-										<span className="text-muted-foreground text-sm">{group.location.address}</span>
+										<span className="wrap-break-word text-muted-foreground text-sm sm:text-right">
+											{group.location.address}
+										</span>
 									</button>
 									<Table>
 										<TableHeader>

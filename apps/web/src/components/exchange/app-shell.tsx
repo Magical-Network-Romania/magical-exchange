@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import type { CityDto, CountryDto } from "@/api/exchange";
 import { Button } from "@/components/ui/button";
 import { SelectField } from "@/components/ui/field";
-import { localeLabels, supportedLocales, type TranslationKey, type UiLocale } from "@/i18n";
+import { isUiLocale, type LocaleManifestItem, supportedLocales, type TranslationKey, type UiLocale } from "@/i18n";
 import { cn } from "@/lib/utils";
 
 export type AppRoute = "dashboard" | "history" | "rates";
@@ -16,6 +16,7 @@ type AppShellProps = {
 	city: string;
 	countries: CountryDto[];
 	country: string;
+	locales: LocaleManifestItem[];
 	locale: UiLocale;
 	onCityChange: (city: string) => void;
 	onCountryChange: (country: string) => void;
@@ -34,6 +35,7 @@ export function AppShell({
 	city,
 	countries,
 	country,
+	locales,
 	locale,
 	onCityChange,
 	onCountryChange,
@@ -48,26 +50,35 @@ export function AppShell({
 	const countryOptions =
 		countries.length > 0 ? countries.map((item) => ({ label: item.name, value: item.code })) : [{ label: country, value: country }];
 	const cityOptions = cities.length > 0 ? cities.map((item) => ({ label: item.name, value: item.slug })) : [{ label: city, value: city }];
-	const localeOptions = supportedLocales.map((item) => ({ label: localeLabels[item], value: item }));
+	const localeOptions =
+		locales.length > 0
+			? locales.map((item) => ({ label: item.label, value: item.code }))
+			: supportedLocales.map((item) => ({ label: item.toUpperCase(), value: item }));
 
 	return (
 		<div className="min-h-screen bg-background">
 			<header className="border-border border-b bg-background/95">
 				<div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-4 sm:px-6 lg:px-8">
 					<div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-						<div className="flex items-center gap-3">
-							<img
-								alt=""
-								className="size-11 rounded-md"
-								src="/logo.svg"
-							/>
-							<div>
+						<div className="flex min-w-0 items-center gap-3">
+							<picture className="shrink-0">
+								<source
+									srcSet="/assets/brand/logo.svg"
+									type="image/svg+xml"
+								/>
+								<img
+									alt=""
+									className="size-11 rounded-md"
+									src="/assets/brand/logo.png"
+								/>
+							</picture>
+							<div className="min-w-0">
 								<div className="font-semibold text-lg">{t("appName")}</div>
-								<div className="text-muted-foreground text-sm">exchange.magical.md</div>
+								<div className="truncate text-muted-foreground text-sm">exchange.magical.md</div>
 							</div>
 						</div>
 
-						<div className="grid gap-3 sm:grid-cols-3 lg:w-[520px]">
+						<div className="grid min-w-0 gap-3 sm:grid-cols-3 lg:w-130">
 							<SelectField
 								label={t("country")}
 								onValueChange={onCountryChange}
@@ -82,15 +93,19 @@ export function AppShell({
 							/>
 							<SelectField
 								label={t("language")}
-								onValueChange={(value) => onLocaleChange(value as UiLocale)}
+								onValueChange={(value) => {
+									if (isUiLocale(value)) {
+										onLocaleChange(value);
+									}
+								}}
 								options={localeOptions}
 								value={locale}
 							/>
 						</div>
 					</div>
 
-					<div className="flex flex-wrap items-center justify-between gap-3">
-						<nav className="flex gap-2">
+					<div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+						<nav className="grid grid-cols-3 gap-1 rounded-md border bg-muted/35 p-1 md:flex md:border-0 md:bg-transparent md:p-0">
 							<NavButton
 								active={route === "dashboard"}
 								icon={<Coins className="size-4" />}
@@ -110,30 +125,32 @@ export function AppShell({
 								onClick={() => onNavigate("history")}
 							/>
 						</nav>
-						<div className="flex flex-wrap gap-2">
+						<div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap md:justify-end">
 							<Button
 								aria-label={theme === "dark" ? t("lightMode") : t("darkMode")}
+								className="min-w-0 shrink whitespace-normal"
 								onClick={onThemeChange}
 								type="button"
 								variant="outline"
 							>
 								{theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
-								{theme === "dark" ? t("lightMode") : t("darkMode")}
+								<span className="truncate">{theme === "dark" ? t("lightMode") : t("darkMode")}</span>
 							</Button>
 							<Button
+								className="min-w-0 shrink whitespace-normal"
 								onClick={onRefresh}
 								type="button"
 								variant="outline"
 							>
 								<RefreshCw className="size-4" />
-								{t("refresh")}
+								<span className="truncate">{t("refresh")}</span>
 							</Button>
 						</div>
 					</div>
 				</div>
 			</header>
 
-			<main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">{children}</main>
+			<main className="mx-auto w-full max-w-7xl overflow-hidden px-4 py-6 sm:px-6 lg:px-8">{children}</main>
 		</div>
 	);
 }
@@ -149,13 +166,13 @@ function NavButton({ active, icon, label, onClick }: NavButtonProps) {
 	return (
 		<Button
 			aria-current={active ? "page" : undefined}
-			className={cn(!active && "text-muted-foreground")}
+			className={cn("min-w-0 shrink whitespace-normal px-2 leading-tight sm:px-4", !active && "text-muted-foreground")}
 			onClick={onClick}
 			type="button"
 			variant={active ? "default" : "ghost"}
 		>
 			{icon}
-			{label}
+			<span className="truncate">{label}</span>
 		</Button>
 	);
 }

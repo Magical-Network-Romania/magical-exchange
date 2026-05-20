@@ -43,6 +43,7 @@ export function HistoryPage({ bootstrap, country, locale, onSelectedCurrencyChan
 				value: currency.code
 			}));
 	}, [bootstrap, selectedCurrency]);
+	const dateRangeError = from > to ? t("invalidDateRange") : null;
 	const chartData = history.map((point) => ({
 		date: point.rateDate,
 		formattedDate: formatDate(point.rateDate, locale),
@@ -50,15 +51,17 @@ export function HistoryPage({ bootstrap, country, locale, onSelectedCurrencyChan
 	}));
 	let chartContent: ReactNode;
 
-	if (isLoading) {
-		chartContent = <Skeleton className="h-[320px]" />;
+	if (dateRangeError) {
+		chartContent = <EmptyState>{dateRangeError}</EmptyState>;
+	} else if (isLoading) {
+		chartContent = <Skeleton className="h-72 sm:h-80" />;
 	} else if (error) {
 		chartContent = <EmptyState>{error}</EmptyState>;
 	} else if (history.length === 0) {
 		chartContent = <EmptyState>{t("emptyHistory")}</EmptyState>;
 	} else {
 		chartContent = (
-			<div className="h-[320px]">
+			<div className="h-72 min-w-0 sm:h-80">
 				<ResponsiveContainer
 					height="100%"
 					width="100%"
@@ -107,6 +110,14 @@ export function HistoryPage({ bootstrap, country, locale, onSelectedCurrencyChan
 	useEffect(() => {
 		const controller = new AbortController();
 
+		if (from > to) {
+			setHistory([]);
+			setIsLoading(false);
+			setError(null);
+
+			return () => controller.abort();
+		}
+
 		setIsLoading(true);
 		setError(null);
 
@@ -126,14 +137,45 @@ export function HistoryPage({ bootstrap, country, locale, onSelectedCurrencyChan
 		return () => controller.abort();
 	}, [country, from, selectedCurrency, to]);
 
+	let historyTableContent: ReactNode;
+
+	if (dateRangeError) {
+		historyTableContent = <EmptyState>{t("emptyHistory")}</EmptyState>;
+	} else if (history.length === 0) {
+		historyTableContent = <EmptyState>{t("emptyHistory")}</EmptyState>;
+	} else {
+		historyTableContent = (
+			<Table>
+				<TableHeader>
+					<TableRow>
+						<TableHead>{t("from")}</TableHead>
+						<TableHead>{t("unit")}</TableHead>
+						<TableHead>{t("rate")}</TableHead>
+						<TableHead>{t("fetched")}</TableHead>
+					</TableRow>
+				</TableHeader>
+				<TableBody>
+					{[...history].reverse().map((point) => (
+						<TableRow key={`${point.rateDate}-${point.rate}`}>
+							<TableCell>{formatDate(point.rateDate, locale)}</TableCell>
+							<TableCell>{point.unit}</TableCell>
+							<TableCell className="font-semibold">{formatRate(point.rate, locale)}</TableCell>
+							<TableCell>{formatDateTime(point.fetchedAt, locale)}</TableCell>
+						</TableRow>
+					))}
+				</TableBody>
+			</Table>
+		);
+	}
+
 	return (
-		<div className="grid gap-6">
+		<div className="grid min-w-0 gap-6">
 			<section className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
 				<div className="max-w-3xl">
-					<h1 className="font-semibold text-3xl sm:text-4xl">{t("historyTitle")}</h1>
+					<h1 className="font-semibold text-2xl sm:text-4xl">{t("historyTitle")}</h1>
 					<p className="mt-2 text-muted-foreground">{t("historySubtitle")}</p>
 				</div>
-				<div className="grid gap-3 sm:grid-cols-3 lg:w-[560px]">
+				<div className="grid min-w-0 gap-3 sm:grid-cols-3 lg:w-140">
 					<SelectField
 						label={t("currency")}
 						onValueChange={onSelectedCurrencyChange}
@@ -141,13 +183,17 @@ export function HistoryPage({ bootstrap, country, locale, onSelectedCurrencyChan
 						value={selectedCurrency}
 					/>
 					<InputField
+						aria-invalid={Boolean(dateRangeError)}
 						label={t("from")}
+						max={to}
 						onChange={(event) => setFrom(event.target.value)}
 						type="date"
 						value={from}
 					/>
 					<InputField
+						aria-invalid={Boolean(dateRangeError)}
 						label={t("to")}
+						min={from}
 						onChange={(event) => setTo(event.target.value)}
 						type="date"
 						value={to}
@@ -164,7 +210,7 @@ export function HistoryPage({ bootstrap, country, locale, onSelectedCurrencyChan
 						{formatDate(from, locale)} - {formatDate(to, locale)}
 					</CardDescription>
 				</CardHeader>
-				<CardContent>{chartContent}</CardContent>
+				<CardContent className="min-w-0">{chartContent}</CardContent>
 			</Card>
 
 			<Card>
@@ -172,32 +218,7 @@ export function HistoryPage({ bootstrap, country, locale, onSelectedCurrencyChan
 					<CardTitle>{t("tableHistory")}</CardTitle>
 					<CardDescription>{selectedCurrency}</CardDescription>
 				</CardHeader>
-				<CardContent>
-					{history.length === 0 ? (
-						<EmptyState>{t("emptyHistory")}</EmptyState>
-					) : (
-						<Table>
-							<TableHeader>
-								<TableRow>
-									<TableHead>{t("from")}</TableHead>
-									<TableHead>{t("unit")}</TableHead>
-									<TableHead>{t("rate")}</TableHead>
-									<TableHead>{t("fetched")}</TableHead>
-								</TableRow>
-							</TableHeader>
-							<TableBody>
-								{[...history].reverse().map((point) => (
-									<TableRow key={`${point.rateDate}-${point.rate}`}>
-										<TableCell>{formatDate(point.rateDate, locale)}</TableCell>
-										<TableCell>{point.unit}</TableCell>
-										<TableCell className="font-semibold">{formatRate(point.rate, locale)}</TableCell>
-										<TableCell>{formatDateTime(point.fetchedAt, locale)}</TableCell>
-									</TableRow>
-								))}
-							</TableBody>
-						</Table>
-					)}
-				</CardContent>
+				<CardContent>{historyTableContent}</CardContent>
 			</Card>
 		</div>
 	);

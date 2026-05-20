@@ -84,17 +84,17 @@ export function DashboardPage({
 	const sellResult = bestSellOffer ? convertForeignToBase(foreignAmountNumber, bestSellOffer.rate) : null;
 
 	return (
-		<div className="grid gap-6">
+		<div className="grid min-w-0 gap-6">
 			<section className="grid gap-4">
 				<div className="max-w-3xl">
-					<h1 className="font-semibold text-3xl sm:text-4xl">{t("dashboardTitle")}</h1>
+					<h1 className="font-semibold text-2xl sm:text-4xl">{t("dashboardTitle")}</h1>
 					<p className="mt-2 text-muted-foreground">{t("dashboardSubtitle")}</p>
 				</div>
 
 				<Card>
 					<CardHeader>
-						<div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-							<div>
+						<div className="flex min-w-0 flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+							<div className="min-w-0">
 								<CardTitle>{t("converter")}</CardTitle>
 								<CardDescription>
 									{bootstrap.city.name}, {bootstrap.country.name} · {t("baseSideLocked")}
@@ -107,7 +107,7 @@ export function DashboardPage({
 							/>
 						</div>
 					</CardHeader>
-					<CardContent className="grid gap-4 lg:grid-cols-2">
+					<CardContent className="grid min-w-0 gap-4 lg:grid-cols-2">
 						<ExchangePanel
 							baseCurrency={baseCurrency}
 							emptyLabel={t("noMarketRatesForCurrency")}
@@ -152,7 +152,7 @@ export function DashboardPage({
 				</Card>
 			</section>
 
-			<section className="grid gap-3 md:grid-cols-4">
+			<section className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-4">
 				<MetricCard
 					icon={<CalendarDays className="size-4" />}
 					label={t("latestOfficialDate")}
@@ -242,7 +242,7 @@ type CurrencyRailProps = {
 
 function CurrencyRail({ onSelectedCurrencyChange, options, selectedCurrency }: CurrencyRailProps) {
 	return (
-		<div className="flex max-w-full gap-1 overflow-x-auto rounded-md border bg-muted/35 p-1">
+		<div className="flex w-full max-w-full gap-1 overflow-x-auto rounded-md border bg-muted/35 p-1 lg:w-auto lg:max-w-md">
 			{options.map((option) => (
 				<Button
 					className={cn("h-9 px-3", option.value !== selectedCurrency && "bg-card")}
@@ -302,16 +302,20 @@ function ExchangePanel({
 	const bestRate = offers[0]?.rate ?? null;
 
 	return (
-		<div className="grid gap-4 rounded-lg border bg-card p-4">
-			<div className="flex items-center gap-2">
-				<span className="inline-flex size-9 items-center justify-center rounded-md bg-secondary text-secondary-foreground">{icon}</span>
-				<div>
+		<div className="grid min-w-0 gap-4 rounded-lg border bg-card p-4">
+			<div className="flex min-w-0 items-center gap-2">
+				<span className="inline-flex size-9 items-center justify-center rounded-md bg-secondary text-secondary-foreground">
+					{icon}
+				</span>
+				<div className="min-w-0">
 					<h2 className="font-semibold text-lg">{title}</h2>
-					<div className="text-muted-foreground text-sm">{formatBestRate(bestRate, kind, baseCurrency, foreignCurrency, locale)}</div>
+					<div className="wrap-break-word text-muted-foreground text-sm">
+						{formatBestRate(bestRate, kind, baseCurrency, foreignCurrency, locale)}
+					</div>
 				</div>
 			</div>
 
-			<div className="grid items-end gap-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+			<div className="grid min-w-0 items-end gap-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
 				<AmountBox
 					currency={inputCurrency}
 					label={inputLabel}
@@ -353,7 +357,12 @@ function AmountBox({ currency, label, onChange, readOnly = false, value }: Amoun
 	return (
 		<label className="grid min-w-0 gap-1.5 text-sm">
 			<span className="font-medium text-muted-foreground text-xs uppercase">{label}</span>
-			<span className={cn("grid h-12 grid-cols-[minmax(0,1fr)_auto] overflow-hidden rounded-md border bg-card", readOnly && "bg-muted/40")}>
+			<span
+				className={cn(
+					"grid h-12 grid-cols-[minmax(0,1fr)_auto] overflow-hidden rounded-md border bg-card",
+					readOnly && "bg-muted/40"
+				)}
+			>
 				<input
 					aria-label={`${label} ${currency}`}
 					className="min-w-0 bg-transparent px-3 text-right font-medium text-lg outline-none"
@@ -389,11 +398,11 @@ function RateOfferList({ baseCurrency, emptyLabel, heading, locale, onLocationSe
 
 	return (
 		<div className="grid gap-2">
-			<div className="font-semibold text-sm">{heading}</div>
+			<div className="wrap-break-word font-semibold text-sm">{heading}</div>
 			<div className="overflow-hidden rounded-md border">
 				{offers.map((offer, index) => (
 					<button
-						className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-border border-b px-3 py-3 text-left transition-colors last:border-b-0 hover:bg-muted/40"
+						className="grid w-full grid-cols-1 items-start gap-2 border-border border-b px-3 py-3 text-left transition-colors last:border-b-0 hover:bg-muted/40 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-3"
 						key={`${offer.rate.location.id}-${offer.rate.currency.code}-${offer.rate.rateType}-${offer.value}`}
 						onClick={() => onLocationSelect(offer.rate.location)}
 						type="button"
@@ -406,7 +415,7 @@ function RateOfferList({ baseCurrency, emptyLabel, heading, locale, onLocationSe
 							</span>
 							<span className="block truncate text-muted-foreground text-xs">{offer.rate.location.name}</span>
 						</span>
-						<span className="text-right">
+						<span className="text-left sm:text-right">
 							<span className="block font-semibold">
 								{formatRate(offer.value, locale)} {baseCurrency}
 							</span>
@@ -427,12 +436,12 @@ type MetricCardProps = {
 
 function MetricCard({ icon, label, value }: MetricCardProps) {
 	return (
-		<div className="rounded-lg border bg-card p-4">
-			<div className="flex items-center gap-2 text-muted-foreground text-sm">
+		<div className="min-w-0 rounded-lg border bg-card p-4">
+			<div className="flex min-w-0 items-center gap-2 text-muted-foreground text-sm">
 				{icon}
-				<span>{label}</span>
+				<span className="truncate">{label}</span>
 			</div>
-			<div className="mt-2 font-semibold text-2xl">{value}</div>
+			<div className="mt-2 wrap-break-word font-semibold text-2xl">{value}</div>
 		</div>
 	);
 }
@@ -477,7 +486,10 @@ function compareRateOffers(left: RateOffer, right: RateOffer, kind: RateOfferKin
 		return rateOrder;
 	}
 
-	return left.rate.institution.name.localeCompare(right.rate.institution.name) || left.rate.location.name.localeCompare(right.rate.location.name);
+	return (
+		left.rate.institution.name.localeCompare(right.rate.institution.name) ||
+		left.rate.location.name.localeCompare(right.rate.location.name)
+	);
 }
 
 function parseAmount(value: string) {

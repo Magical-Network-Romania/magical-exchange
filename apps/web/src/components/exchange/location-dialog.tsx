@@ -18,6 +18,7 @@ export function LocationDialog({ location, onOpenChange, t }: LocationDialogProp
 
 	return (
 		<Dialog
+			closeLabel={t("close")}
 			description={location.institution.name}
 			onOpenChange={onOpenChange}
 			open={Boolean(location)}
@@ -72,12 +73,12 @@ type DetailRowProps = {
 
 function DetailRow({ icon, label, value }: DetailRowProps) {
 	return (
-		<div className="grid gap-1 rounded-md border bg-muted/25 p-3">
+		<div className="grid min-w-0 gap-1 rounded-md border bg-muted/25 p-3">
 			<div className="flex items-center gap-2 text-muted-foreground text-xs uppercase">
 				{icon}
 				<span>{label}</span>
 			</div>
-			<div className="font-medium">{value}</div>
+			<div className="wrap-break-word font-medium">{value}</div>
 		</div>
 	);
 }

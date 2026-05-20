@@ -19,11 +19,11 @@ type InputFieldProps = ComponentProps<"input"> & {
 
 export function SelectField({ className, label, onValueChange, options, ...props }: SelectFieldProps) {
 	return (
-		<label className="grid gap-1.5 text-sm">
+		<label className="grid min-w-0 gap-1.5 text-sm">
 			<span className="font-medium text-muted-foreground text-xs uppercase">{label}</span>
 			<select
 				className={cn(
-					"h-10 rounded-md border border-input bg-card px-3 text-sm outline-none transition-colors focus:border-ring focus:ring-[3px] focus:ring-ring/20 disabled:cursor-not-allowed disabled:opacity-60",
+					"h-10 w-full min-w-0 rounded-md border border-input bg-card px-3 text-sm outline-none transition-colors focus:border-ring focus:ring-[3px] focus:ring-ring/20 disabled:cursor-not-allowed disabled:opacity-60",
 					className
 				)}
 				onChange={(event) => onValueChange(event.target.value)}
@@ -44,11 +44,11 @@ export function SelectField({ className, label, onValueChange, options, ...props
 
 export function InputField({ className, label, ...props }: InputFieldProps) {
 	return (
-		<label className="grid gap-1.5 text-sm">
+		<label className="grid min-w-0 gap-1.5 text-sm">
 			<span className="font-medium text-muted-foreground text-xs uppercase">{label}</span>
 			<input
 				className={cn(
-					"h-10 rounded-md border border-input bg-card px-3 text-sm outline-none transition-colors focus:border-ring focus:ring-[3px] focus:ring-ring/20 disabled:cursor-not-allowed disabled:opacity-60",
+					"h-10 w-full min-w-0 rounded-md border border-input bg-card px-3 text-sm outline-none transition-colors focus:border-ring focus:ring-[3px] focus:ring-ring/20 disabled:cursor-not-allowed disabled:opacity-60",
 					className
 				)}
 				{...props}

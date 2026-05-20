@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 export function Card({ className, ...props }: ComponentProps<"div">) {
 	return (
 		<div
-			className={cn("rounded-lg border bg-card text-card-foreground shadow-sm", className)}
+			className={cn("min-w-0 rounded-lg border bg-card text-card-foreground shadow-sm", className)}
 			{...props}
 		/>
 	);
@@ -14,7 +14,7 @@ export function Card({ className, ...props }: ComponentProps<"div">) {
 export function CardContent({ className, ...props }: ComponentProps<"div">) {
 	return (
 		<div
-			className={cn("p-6", className)}
+			className={cn("min-w-0 p-4 sm:p-6", className)}
 			{...props}
 		/>
 	);
@@ -23,7 +23,7 @@ export function CardContent({ className, ...props }: ComponentProps<"div">) {
 export function CardDescription({ className, ...props }: ComponentProps<"p">) {
 	return (
 		<p
-			className={cn("text-muted-foreground text-sm", className)}
+			className={cn("wrap-break-word text-muted-foreground text-sm", className)}
 			{...props}
 		/>
 	);
@@ -32,7 +32,7 @@ export function CardDescription({ className, ...props }: ComponentProps<"p">) {
 export function CardHeader({ className, ...props }: ComponentProps<"div">) {
 	return (
 		<div
-			className={cn("flex flex-col gap-1.5 p-6", className)}
+			className={cn("flex min-w-0 flex-col gap-1.5 p-4 sm:p-6", className)}
 			{...props}
 		/>
 	);
@@ -41,7 +41,7 @@ export function CardHeader({ className, ...props }: ComponentProps<"div">) {
 export function CardTitle({ className, ...props }: ComponentProps<"h2">) {
 	return (
 		<h2
-			className={cn("font-semibold text-xl tracking-normal", className)}
+			className={cn("wrap-break-word font-semibold text-xl tracking-normal", className)}
 			{...props}
 		/>
 	);
