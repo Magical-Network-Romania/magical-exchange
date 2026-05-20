@@ -73,4 +73,22 @@ class ExchangeLocalizationServiceTest {
 		assertThat(localized.get(0).buyRate()).isEqualByComparingTo("19.10");
 		assertThat(localized.get(0).location().id()).isEqualTo(locationId);
 	}
+
+	@Test
+	void fallsBackToCurrencyCodeForMarketRatesWhenCurrencyMetadataIsMissing() {
+		LocalizationRepository names = mock(LocalizationRepository.class);
+		ExchangeLocalizationService service = new ExchangeLocalizationService(names);
+		UUID institutionId = UUID.randomUUID();
+		UUID locationId = UUID.randomUUID();
+		InstitutionRecord institution = new InstitutionRecord(institutionId, "bank", "Bank", "BANK", "https://example.test");
+		LocationRecord location = new LocationRecord(locationId, "MD", "chisinau", "center", "Center", "Address", BigDecimal.ONE,
+				BigDecimal.TEN, "123", "mail@example.test", institution);
+		MarketRateRecord rate = new MarketRateRecord("JPY", "CASH", BigDecimal.ONE, BigDecimal.TEN, null, 100,
+				OffsetDateTime.parse("2026-05-18T12:00:00+03:00"), null, institution, location);
+
+		List<MarketRateDto> localized = service.marketRates(List.of(rate), List.of(), "ro");
+
+		assertThat(localized).hasSize(1);
+		assertThat(localized.get(0).currency()).isEqualTo(new CurrencyDto("JPY", "JPY", null, 2));
+	}
 }

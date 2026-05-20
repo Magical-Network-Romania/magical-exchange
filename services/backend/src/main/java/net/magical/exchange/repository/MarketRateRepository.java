@@ -70,10 +70,10 @@ public class MarketRateRepository {
 				RETURNING id
 				""";
 
-		List<UUID> batchIds = jdbcClient.sql(sql).param("sourceId", source.id())
-				.param("institutionId", source.institutionId()).param("locationId", source.locationId())
-				.param("country", source.countryCode()).param("city", source.citySlug()).param("checksum", checksum)
-				.query(UUID.class).list();
+		var statement = jdbcClient.sql(sql).param("sourceId", source.id()).param("institutionId", source.institutionId());
+		statement = statement.param("locationId", source.locationId()).param("country", source.countryCode());
+		statement = statement.param("city", source.citySlug()).param("checksum", checksum);
+		List<UUID> batchIds = statement.query(UUID.class).list();
 
 		if (batchIds.isEmpty()) {
 			return null;

@@ -80,8 +80,8 @@ public class LocalizationRepository {
 					AND city.slug IN (:citySlugs)
 				""";
 
-		List<LocalizedName> names = jdbcClient.sql(sql).param("country", country).param("citySlugs", citySlugs)
-				.param("locale", locale).query(this::mapLocalizedName).list();
+		var statement = jdbcClient.sql(sql).param("country", country).param("citySlugs", citySlugs).param("locale", locale);
+		List<LocalizedName> names = statement.query(this::mapLocalizedName).list();
 
 		return toNameMap(names);
 	}

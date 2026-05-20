@@ -102,13 +102,13 @@ public class ExchangeLocalizationService {
 	}
 
 	private OfficialRateDto officialRate(OfficialRateRecord rate, Map<String, CurrencyDto> currenciesByCode) {
-		CurrencyDto currency = requireCurrency(rate.currencyCode(), currenciesByCode);
+		CurrencyDto currency = currencyOrFallback(rate.currencyCode(), currenciesByCode);
 
 		return new OfficialRateDto(currency, rate.unit(), rate.rate(), rate.sourceSlug(), rate.fetchedAt());
 	}
 
 	private MarketRateDto marketRate(MarketRateRecord rate, Map<String, CurrencyDto> currenciesByCode) {
-		CurrencyDto currency = requireCurrency(rate.currencyCode(), currenciesByCode);
+		CurrencyDto currency = currencyOrFallback(rate.currencyCode(), currenciesByCode);
 		InstitutionDto institution = institution(rate.institution());
 		LocationDto location = location(rate.location());
 
@@ -134,11 +134,11 @@ public class ExchangeLocalizationService {
 		return new InstitutionDto(institution.id(), institution.slug(), institution.name(), institution.type(), websiteUrl);
 	}
 
-	private CurrencyDto requireCurrency(String currencyCode, Map<String, CurrencyDto> currenciesByCode) {
+	private CurrencyDto currencyOrFallback(String currencyCode, Map<String, CurrencyDto> currenciesByCode) {
 		CurrencyDto currency = currenciesByCode.get(currencyCode);
 
 		if (currency == null) {
-			throw new IllegalStateException("Currency not found: " + currencyCode);
+			return new CurrencyDto(currencyCode, currencyCode, null, 2);
 		}
 
 		return currency;
