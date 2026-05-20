@@ -1,4 +1,4 @@
-import { BarChart3, Coins, RefreshCw } from "lucide-react";
+import { BarChart3, Coins, Moon, RefreshCw, Sun, Table2 } from "lucide-react";
 import type { ReactNode } from "react";
 
 import type { CityDto, CountryDto } from "@/api/exchange";
@@ -7,7 +7,8 @@ import { SelectField } from "@/components/ui/field";
 import { localeLabels, supportedLocales, type TranslationKey, type UiLocale } from "@/i18n";
 import { cn } from "@/lib/utils";
 
-export type AppRoute = "dashboard" | "history";
+export type AppRoute = "dashboard" | "history" | "rates";
+export type ThemeMode = "dark" | "light";
 
 type AppShellProps = {
 	children: ReactNode;
@@ -21,8 +22,10 @@ type AppShellProps = {
 	onLocaleChange: (locale: UiLocale) => void;
 	onNavigate: (route: AppRoute) => void;
 	onRefresh: () => void;
+	onThemeChange: () => void;
 	route: AppRoute;
 	t: (key: TranslationKey) => string;
+	theme: ThemeMode;
 };
 
 export function AppShell({
@@ -37,8 +40,10 @@ export function AppShell({
 	onLocaleChange,
 	onNavigate,
 	onRefresh,
+	onThemeChange,
 	route,
-	t
+	t,
+	theme
 }: AppShellProps) {
 	const countryOptions =
 		countries.length > 0 ? countries.map((item) => ({ label: item.name, value: item.code })) : [{ label: country, value: country }];
@@ -93,20 +98,37 @@ export function AppShell({
 								onClick={() => onNavigate("dashboard")}
 							/>
 							<NavButton
+								active={route === "rates"}
+								icon={<Table2 className="size-4" />}
+								label={t("allRates")}
+								onClick={() => onNavigate("rates")}
+							/>
+							<NavButton
 								active={route === "history"}
 								icon={<BarChart3 className="size-4" />}
 								label={t("history")}
 								onClick={() => onNavigate("history")}
 							/>
 						</nav>
-						<Button
-							onClick={onRefresh}
-							type="button"
-							variant="outline"
-						>
-							<RefreshCw className="size-4" />
-							{t("refresh")}
-						</Button>
+						<div className="flex flex-wrap gap-2">
+							<Button
+								aria-label={theme === "dark" ? t("lightMode") : t("darkMode")}
+								onClick={onThemeChange}
+								type="button"
+								variant="outline"
+							>
+								{theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
+								{theme === "dark" ? t("lightMode") : t("darkMode")}
+							</Button>
+							<Button
+								onClick={onRefresh}
+								type="button"
+								variant="outline"
+							>
+								<RefreshCw className="size-4" />
+								{t("refresh")}
+							</Button>
+						</div>
 					</div>
 				</div>
 			</header>

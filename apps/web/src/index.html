@@ -11,6 +11,14 @@
 			type="image/svg+xml"
 			href="/logo.svg"
 		/>
+		<script>
+			const storedTheme = window.localStorage.getItem("magical-exchange.theme");
+			const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+			if (storedTheme === "dark" || (!storedTheme && prefersDark)) {
+				document.documentElement.classList.add("dark");
+			}
+		</script>
 		<title>Magical Exchange</title>
 	</head>
 	<body>

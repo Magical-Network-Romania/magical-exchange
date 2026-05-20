@@ -9,9 +9,10 @@ import {
 	fetchCountries,
 	isAbortError
 } from "@/api/exchange";
-import { type AppRoute, AppShell } from "@/components/exchange/app-shell";
+import { type AppRoute, AppShell, type ThemeMode } from "@/components/exchange/app-shell";
 import { DashboardPage } from "@/components/exchange/dashboard-page";
 import { HistoryPage } from "@/components/exchange/history-page";
+import { MarketRatesPage } from "@/components/exchange/market-rates-page";
 import { detectUiLocale, persistUiLocale, type TranslationKey, translate, type UiLocale } from "@/i18n";
 
 const defaultCountry = "MD";
@@ -19,20 +20,43 @@ const defaultCity = "chisinau";
 const defaultCurrency = "EUR";
 
 function routeFromPathname(pathname: string): AppRoute {
-	return pathname === "/history" ? "history" : "dashboard";
+	if (pathname === "/history") {
+		return "history";
+	}
+
+	if (pathname === "/rates") {
+		return "rates";
+	}
+
+	return "dashboard";
 }
 
 function pathnameForRoute(route: AppRoute) {
-	return route === "history" ? "/history" : "/";
+	return {
+		dashboard: "/",
+		history: "/history",
+		rates: "/rates"
+	}[route];
 }
 
 function getStoredValue(key: string, fallback: string) {
 	return window.localStorage.getItem(key) ?? fallback;
 }
 
+function detectTheme(): ThemeMode {
+	const storedTheme = window.localStorage.getItem("magical-exchange.theme");
+
+	if (storedTheme === "dark" || storedTheme === "light") {
+		return storedTheme;
+	}
+
+	return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
 export function App() {
 	const [locale, setLocale] = useState<UiLocale>(() => detectUiLocale());
 	const [route, setRoute] = useState<AppRoute>(() => routeFromPathname(window.location.pathname));
+	const [theme, setTheme] = useState(() => detectTheme());
 	const [country, setCountry] = useState(() => getStoredValue("magical-exchange.country", defaultCountry));
 	const [city, setCity] = useState(() => getStoredValue("magical-exchange.city", defaultCity));
 	const [selectedCurrency, setSelectedCurrency] = useState(() => getStoredValue("magical-exchange.currency", defaultCurrency));
@@ -57,6 +81,11 @@ export function App() {
 	useEffect(() => {
 		persistUiLocale(locale);
 	}, [locale]);
+
+	useEffect(() => {
+		document.documentElement.classList.toggle("dark", theme === "dark");
+		window.localStorage.setItem("magical-exchange.theme", theme);
+	}, [theme]);
 
 	useEffect(() => {
 		window.localStorage.setItem("magical-exchange.country", country);
@@ -171,8 +200,10 @@ export function App() {
 			onLocaleChange={setLocale}
 			onNavigate={navigate}
 			onRefresh={refresh}
+			onThemeChange={() => setTheme((currentTheme) => (currentTheme === "dark" ? "light" : "dark"))}
 			route={route}
 			t={t}
+			theme={theme}
 		>
 			{route === "dashboard" ? (
 				<DashboardPage
@@ -183,6 +214,15 @@ export function App() {
 					onRefresh={refresh}
 					onSelectedCurrencyChange={setSelectedCurrency}
 					selectedCurrency={selectedCurrency}
+					t={t}
+				/>
+			) : route === "rates" ? (
+				<MarketRatesPage
+					bootstrap={bootstrap}
+					error={bootstrapError}
+					isLoading={isBootstrapLoading}
+					locale={locale}
+					onRefresh={refresh}
 					t={t}
 				/>
 			) : (
