@@ -41,18 +41,24 @@ public class MarketRateRepository {
 	}
 
 	public List<MarketRateRecord> findLatestByCity(String country, String city, String currency, String rateType) {
+		String currencyFilter = currency == null ? "" : "AND latest.currency_code = :currency\n";
 		String sql = """
 				SELECT latest.*
 				FROM latest_market_rates_by_location latest
 				WHERE latest.country_code = :country
 					AND latest.city_slug = :city
-					AND (:currencyFilter IS NULL OR latest.currency_code = :currencyFilter)
-					AND latest.rate_type = :rateType
+					""" + currencyFilter + """
+				AND latest.rate_type = :rateType
 				ORDER BY latest.institution_name, latest.location_name, latest.currency_code
 				""";
 
-		return jdbcClient.sql(sql).param("country", country).param("city", city).param("currencyFilter", currency)
-				.param("rateType", rateType).query(this::mapMarketRate).list();
+		var statement = jdbcClient.sql(sql).param("country", country).param("city", city).param("rateType", rateType);
+
+		if (currency != null) {
+			statement = statement.param("currency", currency);
+		}
+
+		return statement.query(this::mapMarketRate).list();
 	}
 
 	public UUID insertBatch(MarketRateSource source, String checksum) {
