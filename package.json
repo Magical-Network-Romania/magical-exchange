@@ -2,14 +2,10 @@
 	"name": "magical-exchange",
 	"private": true,
 	"scripts": {
-		"backend:verify": "mvn -f services/backend/pom.xml verify",
-		"check": "bunx biome check .",
-		"docker:up": "docker compose -f infra/compose.local.yml up --build",
+		"check": "bunx biome check --write .",
 		"format": "bunx biome format --write .",
-		"web:build": "bun run --cwd apps/web build",
-		"web:check": "bunx biome check apps/web",
-		"web:start": "bun run --cwd apps/web start",
-		"web:typecheck": "bun run --cwd apps/web typecheck"
+		"backend:verify": "mvn -f services/backend/pom.xml verify",
+		"docker:up": "docker compose -f infra/compose.local.yml up --build"
 	},
 	"workspaces": ["apps/web"],
 	"devDependencies": {

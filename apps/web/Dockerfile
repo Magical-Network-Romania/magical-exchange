@@ -8,14 +8,9 @@ RUN bun install
 COPY apps/web apps/web
 RUN bun run --cwd apps/web build
 
-FROM oven/bun:1-alpine
+FROM nginx:stable-alpine
 
-WORKDIR /app
-COPY --from=build /workspace/apps/web/src/server.ts src/server.ts
-COPY --from=build /workspace/apps/web/dist dist
+COPY apps/web/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /workspace/apps/web/dist /usr/share/nginx/html
 
-ENV HOST=0.0.0.0
-ENV PORT=3000
-EXPOSE 3000
-
-CMD ["bun", "src/server.ts"]
+EXPOSE 80

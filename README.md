@@ -3,7 +3,7 @@
 Deployment scaffold for Magical Exchange.
 
 - `services/backend` - Spring Boot API with exchange-rate endpoints.
-- `apps/web` - React TSX + Tailwind/shadcn-style smoke-test page served directly by Bun.
+- `apps/web` - React TSX + Tailwind/shadcn-style app built by Bun and served by nginx in production.
 - `infra/compose.local.yml` - local Docker Compose for PostgreSQL, backend, and web.
 - `infra/compose.dokploy.yml` - production Docker Compose for Dokploy.
 - `docs/deployment/dokploy-github.md` - production deployment guide for Dokploy's GitHub integration.

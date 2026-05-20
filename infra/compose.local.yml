@@ -41,10 +41,8 @@ services:
     build:
       context: ..
       dockerfile: apps/web/Dockerfile
-    environment:
-      PORT: 3000
     ports:
-      - "${WEB_PORT:-3000}:3000"
+      - "${WEB_PORT:-3000}:80"
 
 volumes:
   database_data:

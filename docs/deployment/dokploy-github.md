@@ -17,7 +17,7 @@ That single Compose service runs three containers internally:
 
 - `database` - PostgreSQL with the persistent `database_data` Docker volume.
 - `backend` - Spring Boot API on container port `8080`.
-- `web` - Bun-served React site on container port `3000`.
+- `web` - nginx-served static React site on container port `80`. Bun is used only in the Docker build stage.
 
 Do not create three Dokploy services for the current version. Separate Dokploy services are useful later if you want Dokploy's built-in database service, independent scaling, or separate deployments, but the one-Compose-service setup is simpler and matches this repository.
 
@@ -78,7 +78,7 @@ The local port variables from `.env.example` are not needed in Dokploy. Dokploy 
 In the Dokploy Compose service Domains tab:
 
 1. Add `exchange.magical.md`.
-2. Route it to service `web`, port `3000`.
+2. Route it to service `web`, port `80`.
 3. Add `exchange.magical.md` again with path `/api`.
 4. Route the `/api` path to service `backend`, port `8080`.
 
@@ -87,11 +87,13 @@ Do not expose the database with a domain.
 The result should be:
 
 ```text
-https://exchange.magical.md/      -> web:3000
+https://exchange.magical.md/      -> web:80
 https://exchange.magical.md/api   -> backend:8080
 ```
 
-The numbers `3000` and `8080` are container ports. In production, users should access the app through HTTPS domains, not through public VPS ports.
+The numbers `80` and `8080` are container ports inside the Compose service. In production, users should access the app through HTTPS domains, not through public VPS ports.
+
+The web container's nginx config is `apps/web/nginx.conf`. It serves static files from `/usr/share/nginx/html`, falls back to `index.html` for React routes like `/history`, and intentionally returns `404` for `/api` if that path accidentally reaches the web container. Dokploy/Traefik should own `/api` and route it to the backend container.
 
 ## Auto Deploy
 
