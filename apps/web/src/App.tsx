@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
-
+import { AppShell } from "@/components/app-shell";
+import { detectUiLocale, persistUiLocale, type TranslationKey, translate, type UiLocale } from "@/i18n";
+import { DashboardPage } from "@/pages/dashboard/dashboard-page";
+import { HistoryPage } from "@/pages/history/history-page";
+import { MarketRatesPage } from "@/pages/market-rates/market-rates-page";
+import { defaultCity, defaultCountry, defaultCurrency, detectTheme, getStoredValue } from "@/preferences";
+import { type AppRoute, pathnameForRoute, routeFromPathname } from "@/routing";
 import {
 	type BootstrapDto,
 	type CityDto,
@@ -8,50 +14,7 @@ import {
 	fetchCities,
 	fetchCountries,
 	isAbortError
-} from "@/api/exchange";
-import { type AppRoute, AppShell, type ThemeMode } from "@/components/exchange/app-shell";
-import { DashboardPage } from "@/components/exchange/dashboard-page";
-import { HistoryPage } from "@/components/exchange/history-page";
-import { MarketRatesPage } from "@/components/exchange/market-rates-page";
-import { detectUiLocale, persistUiLocale, type TranslationKey, translate, type UiLocale } from "@/i18n";
-
-const defaultCountry = "MD";
-const defaultCity = "chisinau";
-const defaultCurrency = "EUR";
-
-function routeFromPathname(pathname: string): AppRoute {
-	if (pathname === "/history") {
-		return "history";
-	}
-
-	if (pathname === "/rates") {
-		return "rates";
-	}
-
-	return "dashboard";
-}
-
-function pathnameForRoute(route: AppRoute) {
-	return {
-		dashboard: "/",
-		history: "/history",
-		rates: "/rates"
-	}[route];
-}
-
-function getStoredValue(key: string, fallback: string) {
-	return window.localStorage.getItem(key) ?? fallback;
-}
-
-function detectTheme(): ThemeMode {
-	const storedTheme = window.localStorage.getItem("magical-exchange.theme");
-
-	if (storedTheme === "dark" || storedTheme === "light") {
-		return storedTheme;
-	}
-
-	return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-}
+} from "@/services/exchange-api";
 
 export function App() {
 	const [locale, setLocale] = useState<UiLocale>(() => detectUiLocale());

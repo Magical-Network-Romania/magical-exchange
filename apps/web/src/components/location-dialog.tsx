@@ -1,9 +1,9 @@
 import { Building2, ExternalLink, Mail, MapPin, Phone } from "lucide-react";
 import type { ReactNode } from "react";
 
-import type { LocationDto } from "@/api/exchange";
 import { Dialog } from "@/components/ui/dialog";
 import type { TranslationKey } from "@/i18n";
+import type { LocationDto } from "@/services/exchange-api";
 
 type LocationDialogProps = {
 	location: LocationDto | null;

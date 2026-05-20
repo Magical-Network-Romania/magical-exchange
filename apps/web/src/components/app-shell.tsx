@@ -1,13 +1,13 @@
 import { BarChart3, Coins, Moon, RefreshCw, Sun, Table2 } from "lucide-react";
 import type { ReactNode } from "react";
 
-import type { CityDto, CountryDto } from "@/api/exchange";
 import { Button } from "@/components/ui/button";
 import { SelectField } from "@/components/ui/field";
 import { isUiLocale, localeOptions, type TranslationKey, type UiLocale } from "@/i18n";
 import { cn } from "@/lib/utils";
+import type { AppRoute } from "@/routing";
+import type { CityDto, CountryDto } from "@/services/exchange-api";
 
-export type AppRoute = "dashboard" | "history" | "rates";
 export type ThemeMode = "dark" | "light";
 
 type AppShellProps = {
