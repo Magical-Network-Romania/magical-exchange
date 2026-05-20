@@ -205,36 +205,54 @@ export function App() {
 			t={t}
 			theme={theme}
 		>
-			{route === "dashboard" ? (
-				<DashboardPage
-					bootstrap={bootstrap}
-					error={bootstrapError}
-					isLoading={isBootstrapLoading}
-					locale={locale}
-					onRefresh={refresh}
-					onSelectedCurrencyChange={setSelectedCurrency}
-					selectedCurrency={selectedCurrency}
-					t={t}
-				/>
-			) : route === "rates" ? (
-				<MarketRatesPage
-					bootstrap={bootstrap}
-					error={bootstrapError}
-					isLoading={isBootstrapLoading}
-					locale={locale}
-					onRefresh={refresh}
-					t={t}
-				/>
-			) : (
-				<HistoryPage
-					bootstrap={bootstrap}
-					country={country}
-					locale={locale}
-					onSelectedCurrencyChange={setSelectedCurrency}
-					selectedCurrency={selectedCurrency}
-					t={t}
-				/>
-			)}
+			{(() => {
+				switch (route) {
+					case "dashboard": {
+						return (
+							<DashboardPage
+								bootstrap={bootstrap}
+								error={bootstrapError}
+								isLoading={isBootstrapLoading}
+								locale={locale}
+								onRefresh={refresh}
+								onSelectedCurrencyChange={setSelectedCurrency}
+								selectedCurrency={selectedCurrency}
+								t={t}
+							/>
+						);
+					}
+
+					case "rates": {
+						return (
+							<MarketRatesPage
+								bootstrap={bootstrap}
+								error={bootstrapError}
+								isLoading={isBootstrapLoading}
+								locale={locale}
+								onRefresh={refresh}
+								t={t}
+							/>
+						);
+					}
+
+					case "history": {
+						return (
+							<HistoryPage
+								bootstrap={bootstrap}
+								country={country}
+								locale={locale}
+								onSelectedCurrencyChange={setSelectedCurrency}
+								selectedCurrency={selectedCurrency}
+								t={t}
+							/>
+						);
+					}
+
+					default: {
+						return null;
+					}
+				}
+			})()}
 		</AppShell>
 	);
 }
