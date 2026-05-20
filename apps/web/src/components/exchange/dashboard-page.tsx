@@ -400,7 +400,7 @@ function RateOfferList({ baseCurrency, emptyLabel, heading, locale, onLocationSe
 					>
 						<span className="min-w-0">
 							<span className="flex flex-wrap items-center gap-1.5">
-								<span className="font-semibold text-primary">{offer.rate.institution.name}</span>
+								<span className="font-semibold text-rate-provider">{offer.rate.institution.name}</span>
 								<MapPin className="size-3 text-muted-foreground" />
 								{index === 0 && <Badge tone="positive">{t("bestRate")}</Badge>}
 							</span>
