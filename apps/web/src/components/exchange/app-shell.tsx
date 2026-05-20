@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import type { CityDto, CountryDto } from "@/api/exchange";
 import { Button } from "@/components/ui/button";
 import { SelectField } from "@/components/ui/field";
-import { isUiLocale, type LocaleManifestItem, supportedLocales, type TranslationKey, type UiLocale } from "@/i18n";
+import { isUiLocale, localeOptions, type TranslationKey, type UiLocale } from "@/i18n";
 import { cn } from "@/lib/utils";
 
 export type AppRoute = "dashboard" | "history" | "rates";
@@ -16,7 +16,6 @@ type AppShellProps = {
 	city: string;
 	countries: CountryDto[];
 	country: string;
-	locales: LocaleManifestItem[];
 	locale: UiLocale;
 	onCityChange: (city: string) => void;
 	onCountryChange: (country: string) => void;
@@ -35,7 +34,6 @@ export function AppShell({
 	city,
 	countries,
 	country,
-	locales,
 	locale,
 	onCityChange,
 	onCountryChange,
@@ -50,10 +48,6 @@ export function AppShell({
 	const countryOptions =
 		countries.length > 0 ? countries.map((item) => ({ label: item.name, value: item.code })) : [{ label: country, value: country }];
 	const cityOptions = cities.length > 0 ? cities.map((item) => ({ label: item.name, value: item.slug })) : [{ label: city, value: city }];
-	const localeOptions =
-		locales.length > 0
-			? locales.map((item) => ({ label: item.label, value: item.code }))
-			: supportedLocales.map((item) => ({ label: item.toUpperCase(), value: item }));
 
 	return (
 		<div className="min-h-screen bg-background">
