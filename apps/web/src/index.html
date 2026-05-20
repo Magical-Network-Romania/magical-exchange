@@ -9,15 +9,15 @@
 		<link
 			rel="icon"
 			type="image/svg+xml"
-			href="/logo.svg"
+			href="../public/assets/brand/logo.svg"
 		/>
 		<script>
-			const storedTheme = window.localStorage.getItem("magical-exchange.theme");
-			const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+		const storedTheme = window.localStorage.getItem("magical-exchange.theme");
+		const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
 
-			if (storedTheme === "dark" || (!storedTheme && prefersDark)) {
-				document.documentElement.classList.add("dark");
-			}
+		if (storedTheme === "dark" || (!storedTheme && prefersDark)) {
+			document.documentElement.classList.add("dark");
+		}
 		</script>
 		<title>Magical Exchange</title>
 	</head>
