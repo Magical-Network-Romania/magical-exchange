@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="16" styleClass="dialog-content" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1"
+	fx:controller="net.magical.exchange.desktop.controllers.LocationDialogController">
+	<padding>
+		<Insets bottom="8" left="4" right="4" top="4" />
+	</padding>
+	<VBox spacing="4">
+		<Label fx:id="titleLabel" styleClass="dialog-title" />
+		<Label fx:id="descriptionLabel" styleClass="card-description" />
+	</VBox>
+	<VBox spacing="10">
+		<VBox spacing="5" styleClass="detail-row">
+			<Label fx:id="institutionLabel" styleClass="detail-label" />
+			<Label fx:id="institutionValueLabel" styleClass="detail-value" />
+		</VBox>
+		<VBox spacing="5" styleClass="detail-row">
+			<Label fx:id="addressLabel" styleClass="detail-label" />
+			<Label fx:id="addressValueLabel" styleClass="detail-value" />
+		</VBox>
+		<VBox fx:id="phoneRow" spacing="5" styleClass="detail-row">
+			<Label fx:id="phoneLabel" styleClass="detail-label" />
+			<Label fx:id="phoneValueLabel" styleClass="detail-value" />
+		</VBox>
+		<VBox fx:id="emailRow" spacing="5" styleClass="detail-row">
+			<Label fx:id="emailLabel" styleClass="detail-label" />
+			<Label fx:id="emailValueLabel" styleClass="detail-value" />
+		</VBox>
+	</VBox>
+	<Button fx:id="websiteButton" styleClass="link-button" />
+</VBox>

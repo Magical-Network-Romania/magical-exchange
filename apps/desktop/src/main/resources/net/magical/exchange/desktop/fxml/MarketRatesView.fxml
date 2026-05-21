@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1"
+	fx:controller="net.magical.exchange.desktop.controllers.MarketRatesController">
+	<VBox fx:id="statusBox" alignment="CENTER" minHeight="420" spacing="12" styleClass="status-card">
+		<Label fx:id="statusLabel" styleClass="status-label" />
+		<Button fx:id="retryButton" styleClass="primary-button" />
+	</VBox>
+	<VBox fx:id="contentBox" spacing="24">
+		<VBox spacing="8" styleClass="page-heading">
+			<Label fx:id="titleLabel" styleClass="page-title" />
+			<Label fx:id="subtitleLabel" styleClass="page-subtitle" />
+		</VBox>
+		<VBox spacing="16" styleClass="card">
+			<padding>
+				<Insets bottom="18" left="18" right="18" top="18" />
+			</padding>
+			<VBox spacing="4">
+				<Label fx:id="cardTitleLabel" styleClass="card-title" />
+				<Label fx:id="cardDescriptionLabel" styleClass="card-description" />
+			</VBox>
+			<VBox fx:id="groupsBox" spacing="14" />
+		</VBox>
+	</VBox>
+</VBox>

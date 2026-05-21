@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="24" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1"
+	fx:controller="net.magical.exchange.desktop.controllers.HistoryController">
+	<HBox alignment="BOTTOM_LEFT" spacing="18">
+		<VBox spacing="8" styleClass="page-heading" HBox.hgrow="ALWAYS">
+			<Label fx:id="titleLabel" styleClass="page-title" />
+			<Label fx:id="subtitleLabel" styleClass="page-subtitle" />
+		</VBox>
+		<GridPane hgap="12" styleClass="history-controls">
+			<columnConstraints>
+				<ColumnConstraints hgrow="ALWAYS" minWidth="140" percentWidth="33.34" />
+				<ColumnConstraints hgrow="ALWAYS" minWidth="140" percentWidth="33.33" />
+				<ColumnConstraints hgrow="ALWAYS" minWidth="140" percentWidth="33.33" />
+			</columnConstraints>
+			<VBox spacing="5" GridPane.columnIndex="0">
+				<Label fx:id="currencyLabel" styleClass="field-label" />
+				<ComboBox fx:id="currencyCombo" maxWidth="Infinity" />
+			</VBox>
+			<VBox spacing="5" GridPane.columnIndex="1">
+				<Label fx:id="fromLabel" styleClass="field-label" />
+				<DatePicker fx:id="fromPicker" maxWidth="Infinity" />
+			</VBox>
+			<VBox spacing="5" GridPane.columnIndex="2">
+				<Label fx:id="toLabel" styleClass="field-label" />
+				<DatePicker fx:id="toPicker" maxWidth="Infinity" />
+			</VBox>
+		</GridPane>
+	</HBox>
+	<VBox spacing="14" styleClass="card">
+		<padding>
+			<Insets bottom="18" left="18" right="18" top="18" />
+		</padding>
+		<VBox spacing="4">
+			<Label fx:id="chartTitleLabel" styleClass="card-title" />
+			<Label fx:id="chartDescriptionLabel" styleClass="card-description" />
+		</VBox>
+		<StackPane minHeight="320">
+			<Label fx:id="chartStatusLabel" styleClass="empty-state" />
+			<LineChart fx:id="historyChart" animated="false" createSymbols="false" legendVisible="false" minHeight="320">
+				<xAxis>
+					<CategoryAxis fx:id="historyXAxis" tickMarkVisible="false" />
+				</xAxis>
+				<yAxis>
+					<NumberAxis fx:id="historyYAxis" forceZeroInRange="false" tickMarkVisible="false" />
+				</yAxis>
+			</LineChart>
+		</StackPane>
+	</VBox>
+	<VBox spacing="14" styleClass="card">
+		<padding>
+			<Insets bottom="18" left="18" right="18" top="18" />
+		</padding>
+		<VBox spacing="4">
+			<Label fx:id="tableTitleLabel" styleClass="card-title" />
+			<Label fx:id="tableDescriptionLabel" styleClass="card-description" />
+		</VBox>
+		<TableView fx:id="historyTable" prefHeight="360" />
+	</VBox>
+</VBox>

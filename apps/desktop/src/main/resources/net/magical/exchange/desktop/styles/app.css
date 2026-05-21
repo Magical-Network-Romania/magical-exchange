@@ -1,0 +1,439 @@
+.app-root.light {
+	-background: #fbf8ff;
+	-foreground: #2f2335;
+	-card: #ffffff;
+	-primary: #a017a8;
+	-primary-foreground: #fff8ff;
+	-secondary: #f2edf6;
+	-secondary-foreground: #3d2b45;
+	-muted: #f3eef6;
+	-muted-foreground: #716178;
+	-border: #e5d9ea;
+	-positive: #278768;
+	-positive-foreground: #fbfffd;
+	-input: #e5d9ea;
+}
+
+.app-root.dark {
+	-background: #1c222d;
+	-foreground: #f5f7fb;
+	-card: #252b37;
+	-primary: #a017a8;
+	-primary-foreground: #fff8ff;
+	-secondary: #3a3042;
+	-secondary-foreground: #f0e9f4;
+	-muted: #37303d;
+	-muted-foreground: #c3b7c9;
+	-border: #55465e;
+	-positive: #278768;
+	-positive-foreground: #f5fffb;
+	-input: #55465e;
+}
+
+.app-root {
+	-fx-background-color: -background;
+	-fx-font-family: "Inter", "Segoe UI", sans-serif;
+	-fx-text-fill: -foreground;
+}
+
+.app-root .label {
+	-fx-text-fill: -foreground;
+}
+
+.app-header {
+	-fx-background-color: -background;
+	-fx-border-color: transparent transparent -border transparent;
+	-fx-border-width: 0 0 1 0;
+}
+
+.app-scroll,
+.app-scroll > .viewport {
+	-fx-background-color: -background;
+}
+
+.content-host {
+	-fx-background-color: -background;
+}
+
+.brand-logo {
+	-fx-effect: dropshadow(gaussian, rgba(47, 35, 53, 0.12), 10, 0, 0, 2);
+}
+
+.brand-title {
+	-fx-font-size: 18px;
+	-fx-font-weight: 700;
+}
+
+.brand-subtitle,
+.page-subtitle,
+.card-description,
+.muted-small,
+.muted-small-right {
+	-fx-text-fill: -muted-foreground;
+}
+
+.brand-subtitle,
+.muted-small,
+.muted-small-right {
+	-fx-font-size: 12px;
+}
+
+.muted-small-right {
+	-fx-alignment: center-right;
+}
+
+.field-label,
+.detail-label {
+	-fx-text-fill: -muted-foreground;
+	-fx-font-size: 11px;
+	-fx-font-weight: 700;
+}
+
+.combo-box,
+.date-picker,
+.text-field {
+	-fx-background-color: -card;
+	-fx-border-color: -input;
+	-fx-border-radius: 6;
+	-fx-background-radius: 6;
+	-fx-padding: 6 8;
+	-fx-text-fill: -foreground;
+}
+
+.combo-box .list-cell,
+.date-picker .text-field,
+.text-field {
+	-fx-text-fill: -foreground;
+}
+
+.combo-box-popup .list-view {
+	-fx-background-color: -card;
+	-fx-border-color: -border;
+}
+
+.combo-box-popup .list-cell {
+	-fx-background-color: -card;
+	-fx-text-fill: -foreground;
+}
+
+.combo-box-popup .list-cell:hover {
+	-fx-background-color: -muted;
+}
+
+.nav-segment,
+.currency-rail {
+	-fx-background-color: -muted;
+	-fx-background-radius: 7;
+	-fx-border-color: -border;
+	-fx-border-radius: 7;
+	-fx-padding: 4;
+}
+
+.toggle-button,
+.button {
+	-fx-cursor: hand;
+	-fx-font-weight: 600;
+}
+
+.nav-segment .toggle-button {
+	-fx-background-color: transparent;
+	-fx-background-radius: 6;
+	-fx-border-color: transparent;
+	-fx-padding: 8 13;
+	-fx-text-fill: -muted-foreground;
+}
+
+.nav-segment .toggle-button:selected,
+.primary-button,
+.rail-button-active {
+	-fx-background-color: -primary;
+	-fx-border-color: -primary;
+	-fx-text-fill: -primary-foreground;
+}
+
+.outline-button,
+.rail-button {
+	-fx-background-color: transparent;
+	-fx-border-color: -border;
+	-fx-border-radius: 6;
+	-fx-background-radius: 6;
+	-fx-padding: 8 13;
+	-fx-text-fill: -foreground;
+}
+
+.outline-button:hover,
+.rail-button:hover,
+.table-cell-button:hover,
+.offer-row:hover,
+.group-header-button:hover {
+	-fx-background-color: -muted;
+}
+
+.primary-button,
+.rail-button-active,
+.rail-button {
+	-fx-background-radius: 6;
+	-fx-border-radius: 6;
+	-fx-padding: 8 13;
+}
+
+.page-title {
+	-fx-font-size: 34px;
+	-fx-font-weight: 700;
+}
+
+.page-subtitle {
+	-fx-font-size: 14px;
+}
+
+.card,
+.metric-card,
+.exchange-panel,
+.rate-group-card,
+.status-card {
+	-fx-background-color: -card;
+	-fx-border-color: -border;
+	-fx-border-radius: 8;
+	-fx-background-radius: 8;
+}
+
+.card-title,
+.dialog-title {
+	-fx-font-size: 18px;
+	-fx-font-weight: 700;
+}
+
+.section-title {
+	-fx-font-size: 17px;
+	-fx-font-weight: 700;
+}
+
+.small-heading,
+.provider-label,
+.strong-label,
+.detail-value {
+	-fx-font-weight: 700;
+}
+
+.panel-icon {
+	-fx-alignment: center;
+	-fx-background-color: -secondary;
+	-fx-background-radius: 7;
+	-fx-min-width: 36;
+	-fx-min-height: 36;
+	-fx-font-size: 18px;
+	-fx-text-fill: -secondary-foreground;
+}
+
+.exchange-panel,
+.metric-card {
+	-fx-padding: 16;
+}
+
+.metric-value {
+	-fx-font-size: 24px;
+	-fx-font-weight: 700;
+}
+
+.amount-box,
+.amount-box-muted {
+	-fx-background-color: -card;
+	-fx-border-color: -border;
+	-fx-border-radius: 6;
+	-fx-background-radius: 6;
+}
+
+.amount-box-muted {
+	-fx-background-color: -muted;
+}
+
+.amount-box .text-field,
+.amount-box-muted .text-field {
+	-fx-background-color: transparent;
+	-fx-border-color: transparent;
+	-fx-font-size: 17px;
+	-fx-font-weight: 700;
+	-fx-min-height: 36;
+	-fx-pref-height: 36;
+}
+
+.amount-currency {
+	-fx-alignment: center;
+	-fx-background-color: -muted;
+	-fx-border-color: transparent transparent transparent -border;
+	-fx-border-width: 0 0 0 1;
+	-fx-font-weight: 700;
+	-fx-min-height: 36;
+	-fx-pref-height: 36;
+}
+
+.equals-label {
+	-fx-font-size: 24px;
+	-fx-font-weight: 700;
+	-fx-text-fill: -muted-foreground;
+}
+
+.offer-list,
+.rates-grid {
+	-fx-background-color: -card;
+	-fx-border-color: -border;
+	-fx-border-radius: 6;
+	-fx-background-radius: 6;
+}
+
+.offer-row,
+.group-header-button,
+.table-cell-button {
+	-fx-background-color: transparent;
+	-fx-border-color: transparent;
+	-fx-padding: 0;
+	-fx-text-fill: -foreground;
+}
+
+.offer-row {
+	-fx-min-height: 58;
+	-fx-pref-height: 58;
+	-fx-max-height: 58;
+}
+
+.offer-row-grid,
+.group-header-grid {
+	-fx-hgap: 16;
+	-fx-padding: 12;
+}
+
+.badge-positive,
+.badge-secondary {
+	-fx-background-radius: 999;
+	-fx-padding: 3 8;
+	-fx-font-size: 11px;
+	-fx-font-weight: 700;
+}
+
+.badge-positive {
+	-fx-background-color: -positive;
+	-fx-text-fill: -positive-foreground;
+}
+
+.badge-secondary {
+	-fx-background-color: -secondary;
+	-fx-text-fill: -secondary-foreground;
+}
+
+.rate-group-card {
+	-fx-padding: 0;
+}
+
+.group-header-button {
+	-fx-border-color: transparent transparent -border transparent;
+	-fx-border-width: 0 0 1 0;
+}
+
+.rates-grid {
+	-fx-hgap: 0;
+	-fx-vgap: 0;
+}
+
+.table-header-label {
+	-fx-padding: 10 12;
+	-fx-min-height: 36;
+	-fx-pref-height: 36;
+	-fx-font-size: 12px;
+	-fx-font-weight: 700;
+	-fx-text-fill: -muted-foreground;
+	-fx-alignment: center-left;
+}
+
+.table-cell-button {
+	-fx-padding: 10 12;
+	-fx-min-height: 58;
+	-fx-pref-height: 58;
+	-fx-max-height: 58;
+	-fx-border-color: -border transparent transparent transparent;
+	-fx-border-width: 1 0 0 0;
+	-fx-alignment: center-left;
+}
+
+.empty-state,
+.status-label {
+	-fx-text-fill: -muted-foreground;
+	-fx-font-size: 14px;
+	-fx-padding: 18;
+	-fx-alignment: center;
+}
+
+.table-view {
+	-fx-background-color: -card;
+	-fx-border-color: -border;
+	-fx-border-radius: 7;
+	-fx-background-radius: 7;
+}
+
+.table-view .column-header-background,
+.table-view .column-header {
+	-fx-background-color: -card;
+}
+
+.table-view .column-header .label {
+	-fx-text-fill: -muted-foreground;
+	-fx-font-weight: 700;
+	-fx-alignment: center-left;
+}
+
+.table-row-cell,
+.table-cell {
+	-fx-background-color: -card;
+	-fx-text-fill: -foreground;
+	-fx-border-color: transparent transparent -border transparent;
+	-fx-alignment: center-left;
+}
+
+.table-row-cell:hover {
+	-fx-background-color: -muted;
+}
+
+.chart {
+	-fx-background-color: transparent;
+}
+
+.chart-plot-background {
+	-fx-background-color: transparent;
+}
+
+.chart-vertical-grid-lines,
+.chart-horizontal-grid-lines {
+	-fx-stroke: -border;
+	-fx-stroke-dash-array: 3 3;
+}
+
+.default-color0.chart-series-line {
+	-fx-stroke: -primary;
+	-fx-stroke-width: 2px;
+}
+
+.axis {
+	-fx-tick-label-fill: -muted-foreground;
+}
+
+.dialog-pane {
+	-fx-background-color: -card;
+}
+
+.dialog-content {
+	-fx-background-color: -card;
+}
+
+.detail-row {
+	-fx-background-color: -muted;
+	-fx-border-color: -border;
+	-fx-border-radius: 6;
+	-fx-background-radius: 6;
+	-fx-padding: 10;
+}
+
+.link-button {
+	-fx-background-color: transparent;
+	-fx-text-fill: -primary;
+	-fx-padding: 8 0;
+	-fx-font-weight: 700;
+}

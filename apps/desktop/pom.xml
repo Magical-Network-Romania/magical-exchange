@@ -16,7 +16,9 @@
 
 	<properties>
 		<java.quality.skip>false</java.quality.skip>
+		<javafx.maven.plugin.version>0.0.8</javafx.maven.plugin.version>
 		<javafx.version>23.0.2</javafx.version>
+		<spotbugs.annotations.version>4.9.8</spotbugs.annotations.version>
 	</properties>
 
 	<dependencies>
@@ -25,5 +27,40 @@
 			<artifactId>javafx-controls</artifactId>
 			<version>${javafx.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.openjfx</groupId>
+			<artifactId>javafx-fxml</artifactId>
+			<version>${javafx.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jsr310</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.github.spotbugs</groupId>
+			<artifactId>spotbugs-annotations</artifactId>
+			<version>${spotbugs.annotations.version}</version>
+			<scope>provided</scope>
+		</dependency>
 	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.openjfx</groupId>
+				<artifactId>javafx-maven-plugin</artifactId>
+				<version>${javafx.maven.plugin.version}</version>
+				<configuration>
+					<mainClass>net.magical.exchange.desktop.MagicalExchangeDesktopApplication</mainClass>
+					<options>
+						<option>--enable-native-access=javafx.graphics</option>
+					</options>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 </project>
