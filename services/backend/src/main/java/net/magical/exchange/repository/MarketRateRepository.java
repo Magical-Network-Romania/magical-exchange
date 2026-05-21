@@ -62,6 +62,10 @@ public class MarketRateRepository {
 	}
 
 	public UUID insertBatch(MarketRateSource source, String checksum) {
+		return insertBatch(source, null, checksum);
+	}
+
+	public UUID insertBatch(MarketRateSource source, OffsetDateTime sourcePublishedAt, String checksum) {
 		String sql = """
 				INSERT INTO market_rate_batches (
 					source_id,
@@ -69,16 +73,18 @@ public class MarketRateRepository {
 					location_id,
 					country_code,
 					city_slug,
+					source_published_at,
 					checksum
 				)
-				VALUES (:sourceId, :institutionId, :locationId, :country, :city, :checksum)
+				VALUES (:sourceId, :institutionId, :locationId, :country, :city, :sourcePublishedAt, :checksum)
 				ON CONFLICT (source_id, checksum) DO NOTHING
 				RETURNING id
 				""";
 
 		var statement = jdbcClient.sql(sql).param("sourceId", source.id()).param("institutionId", source.institutionId());
 		statement = statement.param("locationId", source.locationId()).param("country", source.countryCode());
-		statement = statement.param("city", source.citySlug()).param("checksum", checksum);
+		statement = statement.param("city", source.citySlug()).param("sourcePublishedAt", sourcePublishedAt);
+		statement = statement.param("checksum", checksum);
 		List<UUID> batchIds = statement.query(UUID.class).list();
 
 		if (batchIds.isEmpty()) {

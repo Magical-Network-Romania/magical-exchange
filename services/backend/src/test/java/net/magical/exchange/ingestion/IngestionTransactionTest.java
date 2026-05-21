@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 import net.magical.exchange.repository.CurrencyRepository;
@@ -43,13 +44,14 @@ class IngestionTransactionTest {
 		UUID runId = UUID.randomUUID();
 		UUID sourceId = UUID.randomUUID();
 		UUID batchId = UUID.randomUUID();
-		MarketRateSource source = new MarketRateSource(sourceId, UUID.randomUUID(), null, "MD", "chisinau", "source",
-				"generic-html", "https://example.test", "CASH");
+		String parserKey = "generic-html";
+		MarketRateSource source = new MarketRateSource(sourceId, UUID.randomUUID(), null, "MD", "chisinau", "source", parserKey,
+				"https://example.test", "CASH");
 		List<MarketRateUpsert> rates = List
 				.of(new MarketRateUpsert("EUR", "CASH", new BigDecimal("19.10"), new BigDecimal("19.35"), null, 1));
 		DataIntegrityViolationException failure = new DataIntegrityViolationException("bad rate");
 
-		when(marketRates.insertBatch(source, "checksum")).thenReturn(batchId);
+		when(marketRates.insertBatch(source, (OffsetDateTime) null, "checksum")).thenReturn(batchId);
 		when(marketRates.insertRates(batchId, rates)).thenThrow(failure);
 
 		assertThatThrownBy(() -> service.saveFetchedRates(runId, source, "checksum", rates)).isSameAs(failure);
@@ -71,12 +73,13 @@ class IngestionTransactionTest {
 				transactions.manager());
 		UUID runId = UUID.randomUUID();
 		UUID sourceId = UUID.randomUUID();
-		MarketRateSource source = new MarketRateSource(sourceId, UUID.randomUUID(), null, "MD", "chisinau", "source",
-				"generic-html", "https://example.test", "CASH");
+		String parserKey = "generic-html";
+		MarketRateSource source = new MarketRateSource(sourceId, UUID.randomUUID(), null, "MD", "chisinau", "source", parserKey,
+				"https://example.test", "CASH");
 		List<MarketRateUpsert> rates = List
 				.of(new MarketRateUpsert("EUR", "CASH", new BigDecimal("19.10"), new BigDecimal("19.35"), null, 1));
 
-		when(marketRates.insertBatch(source, "checksum")).thenReturn(null);
+		when(marketRates.insertBatch(source, (OffsetDateTime) null, "checksum")).thenReturn(null);
 
 		int inserted = service.saveFetchedRates(runId, source, "checksum", rates);
 

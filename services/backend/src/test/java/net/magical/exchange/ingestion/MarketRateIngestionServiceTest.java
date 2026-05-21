@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import net.magical.exchange.repository.MarketRateRepository.MarketRateUpsert;
@@ -17,12 +18,12 @@ class MarketRateIngestionServiceTest {
 			mock(PlatformTransactionManager.class));
 
 	@Test
-	void parsesRowsWithMdlLabelsBetweenRates() {
+	void parsesRowsWithCurrencyLabelsBetweenRates() {
 		MarketRateSource source = source("fincombank-md-cash");
 		String html = """
 				Valuta Cumpărăm Vindem
 				EUR 20.08 MDL 20.25 MDL
-				USD 17.28 MDL 17.46 MDL
+				USD 17.28 RON 17.46 RON
 				GBP 23.08 MDL 23.35 MDL
 				""";
 
@@ -73,6 +74,24 @@ class MarketRateIngestionServiceTest {
 		assertThat(rateFor(rates, "EUR").buy()).isEqualByComparingTo(new BigDecimal("20.0400"));
 	}
 
+	@Test
+	void parsesComertbankPublishedDateFromSourcePage() {
+		MarketRateSource source = source("comertbank-md-cash", "comertbank-html");
+		String html = """
+				<div class="cur_date">Curs valutar 21.05.2026</div>
+				<table>
+					<tr><td>USD</td><td>17,25</td><td>17,45</td><td>17,3597</td></tr>
+					<tr><td>EUR</td><td>20.13</td><td>20.25</td><td>20.139</td></tr>
+				</table>
+				""";
+
+		MarketRateIngestionService.MarketRateParseResult result = service.parseMarketRatePage(source, html, activeCurrencies());
+
+		assertThat(result.sourcePublishedDate()).isEqualTo(LocalDate.parse("2026-05-21"));
+		assertThat(result.rates()).extracting(MarketRateUpsert::currency).containsExactly("USD", "EUR");
+		assertThat(rateFor(result.rates(), "USD").buy()).isEqualByComparingTo(new BigDecimal("17.25"));
+	}
+
 	private List<String> activeCurrencies() {
 		return List.of("MDL", "EUR", "USD", "GBP", "RON", "UAH", "CHF", "RUB");
 	}
@@ -86,7 +105,7 @@ class MarketRateIngestionServiceTest {
 	}
 
 	private MarketRateSource source(String slug, String parserKey) {
-		return new MarketRateSource(UUID.randomUUID(), UUID.randomUUID(), null, "MD", null, slug, parserKey,
-				"https://example.test", "CASH");
+		return new MarketRateSource(UUID.randomUUID(), UUID.randomUUID(), null, "MD", null, slug, parserKey, "https://example.test",
+				"CASH");
 	}
 }

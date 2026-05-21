@@ -10,12 +10,18 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HexFormat;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -38,11 +44,20 @@ public class MarketRateIngestionService {
 
 	private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(10);
 	private static final String DECIMAL_TOKEN = "[-0-9.,–]+";
+	private static final String OPTIONAL_RATE_SUFFIX = "(?:\\s+(?:[A-Z]{3}\\.?|Lei|lei))?";
+	private static final String OPTIONAL_OFFICIAL_RATE = "(?:\\s+(" + DECIMAL_TOKEN + "))?";
+	private static final String RATE_ROW_CURRENCY = "(?:\\b|\\()([A-Z]{3})(?:\\b|\\))";
+	private static final String RATE_ROW_GAP = "(?:(?!\\b[A-Z]{3}\\b)[^0-9–-]){0,80}\\s+(";
+	private static final String RATE_ROW_PREFIX = RATE_ROW_CURRENCY + RATE_ROW_GAP;
+	private static final String RATE_TOKEN_WITH_SUFFIX = DECIMAL_TOKEN + ")" + OPTIONAL_RATE_SUFFIX;
 	private static final Pattern RATE_ROW_PATTERN = Pattern
-			.compile("(?:\\b|\\()([A-Z]{3})(?:\\b|\\))(?:(?!\\b[A-Z]{3}\\b)[^0-9–-]){0,80}\\s+("
-					+ DECIMAL_TOKEN + ")(?:\\s+(?:MDL|MDL\\.|Lei|lei))?\\s+(" + DECIMAL_TOKEN
-					+ ")(?:\\s+(?:MDL|MDL\\.|Lei|lei))?(?:\\s+(" + DECIMAL_TOKEN + "))?");
+			.compile(RATE_ROW_PREFIX + RATE_TOKEN_WITH_SUFFIX + "\\s+(" + RATE_TOKEN_WITH_SUFFIX + OPTIONAL_OFFICIAL_RATE);
 	private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(20);
+	private static final DateTimeFormatter SOURCE_DASH_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+	private static final DateTimeFormatter SOURCE_DOT_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+	private static final Pattern SOURCE_DATE_PATTERN = Pattern.compile(
+			"(?:Curs\\s+valutar|Exchange\\s+rates?|Курс\\s+валют)[^0-9]{0,80}(\\d{2}[.-]\\d{2}[.-]\\d{4})",
+			Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
 	private static final Pattern TABLE_TOKEN_PATTERN = Pattern.compile("\\b[A-Z]{3}\\b|" + DECIMAL_TOKEN);
 
 	private final CurrencyRepository currencyRepository;
@@ -86,15 +101,16 @@ public class MarketRateIngestionService {
 
 		try {
 			String html = fetchHtml(source);
-			List<MarketRateUpsert> rates = parseMarketRates(source, html, activeCurrencies);
+			MarketRateParseResult result = parseMarketRatePage(source, html, activeCurrencies);
+			List<MarketRateUpsert> rates = result.rates();
 
 			if (rates.isEmpty()) {
 				sourceFetchRunRepository.finish(runId, "FAILED", 0, "No market rates found in source: " + source.slug());
 				return;
 			}
 
-			String checksum = checksum(rates);
-			saveFetchedRates(runId, source, checksum, rates);
+			String checksum = checksum(result.sourcePublishedDate(), rates);
+			saveFetchedRates(runId, source, result.sourcePublishedAt(), checksum, rates);
 		} catch (MarketRateIngestionException exception) {
 			sourceFetchRunRepository.finish(runId, "FAILED", 0, exception.getMessage());
 		} catch (DataAccessException exception) {
@@ -103,8 +119,13 @@ public class MarketRateIngestionService {
 	}
 
 	int saveFetchedRates(UUID runId, MarketRateSource source, String checksum, List<MarketRateUpsert> rates) {
+		return saveFetchedRates(runId, source, null, checksum, rates);
+	}
+
+	int saveFetchedRates(UUID runId, MarketRateSource source, OffsetDateTime sourcePublishedAt, String checksum,
+			List<MarketRateUpsert> rates) {
 		Integer itemsInserted = transactionTemplate.execute(status -> {
-			UUID batchId = marketRateRepository.insertBatch(source, checksum);
+			UUID batchId = marketRateRepository.insertBatch(source, sourcePublishedAt, checksum);
 
 			if (batchId == null) {
 				sourceFetchRunRepository.finish(runId, "SKIPPED", 0, "Market rates unchanged");
@@ -171,6 +192,19 @@ public class MarketRateIngestionService {
 	List<MarketRateUpsert> parseMarketRates(MarketRateSource source, String html, List<String> activeCurrencies) {
 		Document document = Jsoup.parse(html);
 		String text = document.text().replace('\u00A0', ' ');
+		return parseMarketRatesFromText(source, text, activeCurrencies);
+	}
+
+	MarketRateParseResult parseMarketRatePage(MarketRateSource source, String html, List<String> activeCurrencies) {
+		Document document = Jsoup.parse(html);
+		String text = document.text().replace('\u00A0', ' ');
+		LocalDate sourcePublishedDate = parseSourcePublishedDate(text);
+		List<MarketRateUpsert> rates = parseMarketRatesFromText(source, text, activeCurrencies);
+
+		return new MarketRateParseResult(sourcePublishedDate, rates);
+	}
+
+	private List<MarketRateUpsert> parseMarketRatesFromText(MarketRateSource source, String text, List<String> activeCurrencies) {
 		Map<String, MarketRateUpsert> indexedTableRates = parseIndexedRateTable(source, text, activeCurrencies);
 
 		if (!indexedTableRates.isEmpty()) {
@@ -203,6 +237,21 @@ public class MarketRateIngestionService {
 		return new ArrayList<>(ratesByCurrency.values());
 	}
 
+	private LocalDate parseSourcePublishedDate(String text) {
+		return SOURCE_DATE_PATTERN.matcher(text).results().map(match -> parseSourceDate(match.group(1))).filter(Objects::nonNull)
+				.findFirst().orElse(null);
+	}
+
+	private LocalDate parseSourceDate(String value) {
+		DateTimeFormatter formatter = value.indexOf('.') >= 0 ? SOURCE_DOT_DATE_FORMATTER : SOURCE_DASH_DATE_FORMATTER;
+
+		try {
+			return LocalDate.parse(value, formatter);
+		} catch (DateTimeParseException exception) {
+			return null;
+		}
+	}
+
 	private BigDecimal parseRowBuyRate(MarketRateSource source, Matcher matcher) {
 		if ("eurocreditbank-html".equals(source.parserKey())) {
 			return parseOptionalDecimal(matcher.group(4));
@@ -223,6 +272,7 @@ public class MarketRateIngestionService {
 		return parseOptionalDecimal(matcher.group(4));
 	}
 
+	@SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.CognitiveComplexity"})
 	private Map<String, MarketRateUpsert> parseIndexedRateTable(MarketRateSource source, String text, List<String> activeCurrencies) {
 		int markerIndex = text.indexOf("Valuta Cumpărare Vânzare Curs BNM");
 
@@ -323,10 +373,14 @@ public class MarketRateIngestionService {
 		return rate != null && BigDecimal.ZERO.compareTo(rate) < 0;
 	}
 
-	private String checksum(List<MarketRateUpsert> rates) {
+	private String checksum(LocalDate sourcePublishedDate, List<MarketRateUpsert> rates) {
 		try {
 			MessageDigest digest = MessageDigest.getInstance("SHA-256");
 			Comparator<MarketRateUpsert> currencyOrder = Comparator.comparing(MarketRateUpsert::currency);
+
+			if (sourcePublishedDate != null) {
+				digest.update(("publishedDate|" + sourcePublishedDate).getBytes(StandardCharsets.UTF_8));
+			}
 
 			rates.stream().sorted(currencyOrder).forEach(rate -> updateDigest(digest, rate));
 
@@ -349,6 +403,16 @@ public class MarketRateIngestionService {
 		}
 
 		return rate.stripTrailingZeros().toPlainString();
+	}
+
+	record MarketRateParseResult(LocalDate sourcePublishedDate, List<MarketRateUpsert> rates) {
+		OffsetDateTime sourcePublishedAt() {
+			if (sourcePublishedDate == null) {
+				return null;
+			}
+
+			return sourcePublishedDate.atStartOfDay().atOffset(ZoneOffset.UTC);
+		}
 	}
 
 }
