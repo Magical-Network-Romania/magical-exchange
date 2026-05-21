@@ -19,6 +19,8 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.util.StringConverter;
@@ -27,6 +29,7 @@ import net.magical.exchange.desktop.model.BootstrapDto;
 import net.magical.exchange.desktop.model.CurrencyDto;
 import net.magical.exchange.desktop.model.OfficialRateHistoryPoint;
 import net.magical.exchange.desktop.model.UiLocale;
+import net.magical.exchange.desktop.util.ExchangeExport;
 import net.magical.exchange.desktop.util.ExchangeFormat;
 import net.magical.exchange.desktop.util.HistoryChartPoint;
 import net.magical.exchange.desktop.util.HistoryMapper;
@@ -56,6 +59,9 @@ public class HistoryController implements PageController {
 
 	@FXML
 	private DatePicker toPicker;
+
+	@FXML
+	private MenuButton exportMenuButton;
 
 	@FXML
 	private Label chartTitleLabel;
@@ -97,9 +103,12 @@ public class HistoryController implements PageController {
 	private boolean historyLoading;
 	private boolean updatingCurrency;
 	private int historyRequestSerial;
+	private MenuItem exportCsvItem;
+	private MenuItem exportTxtItem;
 
 	@FXML
 	public void initialize() {
+		setupExportMenu();
 		fromPicker.setValue(LocalDate.now().minusDays(30));
 		toPicker.setValue(LocalDate.now());
 		currencyCombo.valueProperty().addListener((observable, previousValue, currentValue) -> {
@@ -138,6 +147,7 @@ public class HistoryController implements PageController {
 		currencyLabel.setText(host.i18n().text("currency"));
 		fromLabel.setText(host.i18n().text("from"));
 		toLabel.setText(host.i18n().text("to"));
+		refreshExportMenuText();
 		tableTitleLabel.setText(host.i18n().text("tableHistory"));
 		refreshTableHeaders();
 		renderChrome();
@@ -198,6 +208,7 @@ public class HistoryController implements PageController {
 			historyLoading = false;
 			renderHistoryStatus(host.i18n().text("invalidDateRange"));
 			historyTable.setItems(FXCollections.observableArrayList());
+			updateExportState();
 			return;
 		}
 
@@ -223,6 +234,7 @@ public class HistoryController implements PageController {
 		history = List.of();
 		renderHistoryStatus(host.i18n().text("loading"));
 		historyTable.setItems(FXCollections.observableArrayList());
+		updateExportState();
 		host.apiClient().fetchOfficialRateHistory(countryCode, selectedCurrency, from, to)
 				.whenComplete((points, failure) -> Platform.runLater(() -> handleHistory(token, points, failure)));
 	}
@@ -238,6 +250,7 @@ public class HistoryController implements PageController {
 			history = List.of();
 			renderHistoryStatus(failureMessage(failure));
 			historyTable.setItems(FXCollections.observableArrayList());
+			updateExportState();
 			return;
 		}
 
@@ -261,12 +274,14 @@ public class HistoryController implements PageController {
 
 		if (historyLoading) {
 			renderHistoryStatus(host.i18n().text("loading"));
+			updateExportState();
 			return;
 		}
 
 		if (history.isEmpty()) {
 			renderHistoryStatus(host.i18n().text("emptyHistory"));
 			historyTable.setItems(FXCollections.observableArrayList());
+			updateExportState();
 			return;
 		}
 
@@ -274,6 +289,7 @@ public class HistoryController implements PageController {
 		ControllerSupport.setManagedVisible(historyChart, true);
 		renderChart();
 		renderTable();
+		updateExportState();
 	}
 
 	private void renderChart() {
@@ -301,6 +317,43 @@ public class HistoryController implements PageController {
 		historyChart.getData().clear();
 		ControllerSupport.setManagedVisible(chartStatusLabel, true);
 		ControllerSupport.setManagedVisible(historyChart, false);
+		updateExportState();
+	}
+
+	private void setupExportMenu() {
+		exportCsvItem = new MenuItem();
+		exportTxtItem = new MenuItem();
+		exportCsvItem.setOnAction(event -> exportHistory(ExchangeExport.Format.CSV));
+		exportTxtItem.setOnAction(event -> exportHistory(ExchangeExport.Format.TXT));
+		exportMenuButton.getItems().setAll(exportCsvItem, exportTxtItem);
+	}
+
+	private void refreshExportMenuText() {
+		exportMenuButton.setText(host.i18n().text("export"));
+		exportCsvItem.setText(host.i18n().text("exportCsv"));
+		exportTxtItem.setText(host.i18n().text("exportTxt"));
+	}
+
+	private void exportHistory(ExchangeExport.Format format) {
+		if (history.isEmpty() || fromPicker.getValue() == null || toPicker.getValue() == null) {
+			return;
+		}
+
+		String baseCurrency = currentBootstrap == null ? "MDL" : currentBootstrap.country().baseCurrencyCode();
+		String countryName = currentBootstrap == null ? countryCode : currentBootstrap.country().name();
+		LocalDate from = fromPicker.getValue();
+		LocalDate to = toPicker.getValue();
+		String content = ExchangeExport.officialHistory(countryCode, countryName, baseCurrency, selectedCurrency, from, to, history,
+				format);
+		String fileName = ExchangeExport.officialHistoryFileName(countryCode, selectedCurrency, from, to);
+		ControllerSupport.saveExport(historyTable.getScene().getWindow(), host.i18n(), fileName, format, content);
+	}
+
+	private void updateExportState() {
+		LocalDate from = fromPicker.getValue();
+		LocalDate to = toPicker.getValue();
+		boolean invalidRange = from == null || to == null || from.isAfter(to);
+		exportMenuButton.setDisable(historyLoading || invalidRange || history.isEmpty());
 	}
 
 	private void setupHistoryTable() {

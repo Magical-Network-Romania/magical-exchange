@@ -10,6 +10,8 @@ import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -28,6 +30,7 @@ import net.magical.exchange.desktop.model.RateOffer;
 import net.magical.exchange.desktop.model.RateOfferKind;
 import net.magical.exchange.desktop.model.UiLocale;
 import net.magical.exchange.desktop.util.DashboardCalculator;
+import net.magical.exchange.desktop.util.ExchangeExport;
 import net.magical.exchange.desktop.util.ExchangeFormat;
 
 public class DashboardController implements PageController {
@@ -58,6 +61,9 @@ public class DashboardController implements PageController {
 
 	@FXML
 	private HBox currencyRail;
+
+	@FXML
+	private MenuButton exportMenuButton;
 
 	@FXML
 	private Label buyTitleLabel;
@@ -152,10 +158,13 @@ public class DashboardController implements PageController {
 	private List<RateOffer> sellOffers = List.of();
 	private UiLocale currentLocale = UiLocale.EN;
 	private String selectedCurrency = "EUR";
+	private MenuItem exportCsvItem;
+	private MenuItem exportTxtItem;
 
 	@FXML
 	public void initialize() {
 		retryButton.setOnAction(event -> host.refresh());
+		setupExportMenu();
 		buyInputField.setText("1000");
 		sellInputField.setText("1");
 		buyInputField.textProperty().addListener((observable, previousValue, currentValue) -> renderConversions());
@@ -185,6 +194,7 @@ public class DashboardController implements PageController {
 		baseCurrencyMetricLabel.setText(host.i18n().text("baseCurrency"));
 		officialRatesTitleLabel.setText(host.i18n().text("cardOfficialTitle"));
 		officialRatesDescriptionLabel.setText(host.i18n().text("cardOfficialDescription"));
+		refreshExportMenuText();
 		retryButton.setText(host.i18n().text("retry"));
 		refreshTableHeaders();
 		renderCurrentContent();
@@ -225,6 +235,7 @@ public class DashboardController implements PageController {
 		List<MarketRateDto> selectedRates = DashboardCalculator.ratesForCurrency(currentBootstrap.marketRates(), selectedCurrency);
 		buyOffers = DashboardCalculator.buildRateOffers(selectedRates, RateOfferKind.BUY);
 		sellOffers = DashboardCalculator.buildRateOffers(selectedRates, RateOfferKind.SELL);
+		exportMenuButton.setDisable(selectedRates.isEmpty());
 		String cityCountry = currentBootstrap.city().name() + ", " + currentBootstrap.country().name();
 		converterDescriptionLabel.setText(cityCountry + " · " + host.i18n().text("baseSideLocked"));
 
@@ -358,6 +369,31 @@ public class DashboardController implements PageController {
 		officialDateMetricValue.setText(ExchangeFormat.formatDate(currentBootstrap.officialRates().rateDate(), currentLocale));
 		locationsMetricValue.setText(ExchangeFormat.formatNumber(currentBootstrap.locations().size(), currentLocale));
 		baseCurrencyMetricValue.setText(baseCurrency);
+	}
+
+	private void setupExportMenu() {
+		exportCsvItem = new MenuItem();
+		exportTxtItem = new MenuItem();
+		exportCsvItem.setOnAction(event -> exportSelectedRates(ExchangeExport.Format.CSV));
+		exportTxtItem.setOnAction(event -> exportSelectedRates(ExchangeExport.Format.TXT));
+		exportMenuButton.getItems().setAll(exportCsvItem, exportTxtItem);
+	}
+
+	private void refreshExportMenuText() {
+		exportMenuButton.setText(host.i18n().text("export"));
+		exportCsvItem.setText(host.i18n().text("exportCsv"));
+		exportTxtItem.setText(host.i18n().text("exportTxt"));
+	}
+
+	private void exportSelectedRates(ExchangeExport.Format format) {
+		if (currentBootstrap == null) {
+			return;
+		}
+
+		List<MarketRateDto> selectedRates = DashboardCalculator.ratesForCurrency(currentBootstrap.marketRates(), selectedCurrency);
+		String content = ExchangeExport.marketRates(currentBootstrap, selectedRates, selectedCurrency, format);
+		String fileName = ExchangeExport.currentRatesFileName(currentBootstrap, selectedCurrency);
+		ControllerSupport.saveExport(contentBox.getScene().getWindow(), host.i18n(), fileName, format, content);
 	}
 
 	private void showStatus(String message, boolean canRetry) {

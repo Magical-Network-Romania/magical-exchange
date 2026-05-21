@@ -7,6 +7,8 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -18,6 +20,7 @@ import net.magical.exchange.desktop.model.BootstrapDto;
 import net.magical.exchange.desktop.model.MarketRateDto;
 import net.magical.exchange.desktop.model.MarketRateGroup;
 import net.magical.exchange.desktop.model.UiLocale;
+import net.magical.exchange.desktop.util.ExchangeExport;
 import net.magical.exchange.desktop.util.ExchangeFormat;
 import net.magical.exchange.desktop.util.MarketRateGrouper;
 
@@ -48,15 +51,21 @@ public class MarketRatesController implements PageController {
 	private Label cardDescriptionLabel;
 
 	@FXML
+	private MenuButton exportMenuButton;
+
+	@FXML
 	private VBox groupsBox;
 
 	private AppController host;
 	private BootstrapDto currentBootstrap;
 	private UiLocale currentLocale = UiLocale.EN;
+	private MenuItem exportCsvItem;
+	private MenuItem exportTxtItem;
 
 	@FXML
 	public void initialize() {
 		retryButton.setOnAction(event -> host.refresh());
+		setupExportMenu();
 	}
 
 	@Override
@@ -70,6 +79,7 @@ public class MarketRatesController implements PageController {
 		titleLabel.setText(host.i18n().text("allRatesTitle"));
 		cardTitleLabel.setText(host.i18n().text("allRates"));
 		cardDescriptionLabel.setText(host.i18n().text("allRatesSubtitle"));
+		refreshExportMenuText();
 		retryButton.setText(host.i18n().text("retry"));
 		renderCurrentContent();
 	}
@@ -106,6 +116,7 @@ public class MarketRatesController implements PageController {
 
 		subtitleLabel.setText(currentBootstrap.city().name() + ", " + currentBootstrap.country().name());
 		List<MarketRateGroup> groups = MarketRateGrouper.groupMarketRates(currentBootstrap.marketRates());
+		exportMenuButton.setDisable(currentBootstrap.marketRates().isEmpty());
 		groupsBox.getChildren().clear();
 
 		if (groups.isEmpty()) {
@@ -222,6 +233,30 @@ public class MarketRatesController implements PageController {
 		constraints.setHgrow(Priority.ALWAYS);
 
 		return constraints;
+	}
+
+	private void setupExportMenu() {
+		exportCsvItem = new MenuItem();
+		exportTxtItem = new MenuItem();
+		exportCsvItem.setOnAction(event -> exportMarketRates(ExchangeExport.Format.CSV));
+		exportTxtItem.setOnAction(event -> exportMarketRates(ExchangeExport.Format.TXT));
+		exportMenuButton.getItems().setAll(exportCsvItem, exportTxtItem);
+	}
+
+	private void refreshExportMenuText() {
+		exportMenuButton.setText(host.i18n().text("export"));
+		exportCsvItem.setText(host.i18n().text("exportCsv"));
+		exportTxtItem.setText(host.i18n().text("exportTxt"));
+	}
+
+	private void exportMarketRates(ExchangeExport.Format format) {
+		if (currentBootstrap == null) {
+			return;
+		}
+
+		String content = ExchangeExport.marketRates(currentBootstrap, currentBootstrap.marketRates(), "all", format);
+		String fileName = ExchangeExport.currentRatesFileName(currentBootstrap, "all");
+		ControllerSupport.saveExport(contentBox.getScene().getWindow(), host.i18n(), fileName, format, content);
 	}
 
 	private void showStatus(String message, boolean canRetry) {

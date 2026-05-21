@@ -1,10 +1,12 @@
 import { Building2, CalendarDays, MapPin, TrendingDown, TrendingUp } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { Translate } from "@/app-types";
+import { ExportMenuButton } from "@/components/export-menu-button";
 import { LocationDialog } from "@/components/location-dialog";
 import { RetryState } from "@/components/retry-state";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { type ExportFormat, exportMarketRates } from "@/export-data";
 import { formatCompactNumber, formatDate } from "@/format";
 import type { UiLocale } from "@/i18n";
 import { defaultCurrency } from "@/preferences";
@@ -50,6 +52,19 @@ export function DashboardPage({
 	const baseAmountNumber = parseAmount(baseAmount);
 	const foreignAmountNumber = parseAmount(foreignAmount);
 
+	function handleExport(format: ExportFormat) {
+		if (!bootstrap) {
+			return;
+		}
+
+		exportMarketRates({
+			bootstrap,
+			format,
+			rates: selectedRates,
+			selectedCurrency
+		});
+	}
+
 	if (isLoading && !bootstrap) {
 		return <DashboardSkeleton />;
 	}
@@ -89,11 +104,18 @@ export function DashboardPage({
 									{bootstrap.city.name}, {bootstrap.country.name} · {t("baseSideLocked")}
 								</CardDescription>
 							</div>
-							<CurrencyRail
-								onSelectedCurrencyChange={onSelectedCurrencyChange}
-								options={currencyOptions}
-								selectedCurrency={selectedCurrency}
-							/>
+							<div className="flex flex-wrap items-center gap-2">
+								<CurrencyRail
+									onSelectedCurrencyChange={onSelectedCurrencyChange}
+									options={currencyOptions}
+									selectedCurrency={selectedCurrency}
+								/>
+								<ExportMenuButton
+									disabled={selectedRates.length === 0}
+									onExport={handleExport}
+									t={t}
+								/>
+							</div>
 						</div>
 					</CardHeader>
 					<CardContent className="grid min-w-0 gap-4 lg:grid-cols-2">

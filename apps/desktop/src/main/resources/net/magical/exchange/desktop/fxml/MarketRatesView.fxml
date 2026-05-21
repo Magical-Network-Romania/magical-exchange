@@ -3,6 +3,8 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
 <VBox spacing="0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1"
@@ -20,10 +22,13 @@
 			<padding>
 				<Insets bottom="18" left="18" right="18" top="18" />
 			</padding>
-			<VBox spacing="4">
-				<Label fx:id="cardTitleLabel" styleClass="card-title" />
-				<Label fx:id="cardDescriptionLabel" styleClass="card-description" />
-			</VBox>
+			<HBox alignment="TOP_LEFT" spacing="16">
+				<VBox spacing="4" HBox.hgrow="ALWAYS">
+					<Label fx:id="cardTitleLabel" styleClass="card-title" />
+					<Label fx:id="cardDescriptionLabel" styleClass="card-description" />
+				</VBox>
+				<MenuButton fx:id="exportMenuButton" styleClass="outline-button" />
+			</HBox>
 			<VBox fx:id="groupsBox" spacing="14" />
 		</VBox>
 	</VBox>

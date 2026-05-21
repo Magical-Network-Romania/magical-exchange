@@ -1,9 +1,11 @@
 import { useMemo, useState } from "react";
 import type { Translate } from "@/app-types";
+import { ExportMenuButton } from "@/components/export-menu-button";
 import { LocationDialog } from "@/components/location-dialog";
 import { RetryState } from "@/components/retry-state";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { type ExportFormat, exportMarketRates } from "@/export-data";
 import type { UiLocale } from "@/i18n";
 import type { BootstrapDto, LocationDto } from "@/services/exchange-api";
 import { MarketRatesList } from "./components/market-rates-list";
@@ -22,6 +24,19 @@ type MarketRatesPageProps = {
 export function MarketRatesPage({ bootstrap, error, isLoading, locale, onRefresh, t }: MarketRatesPageProps) {
 	const [selectedLocation, setSelectedLocation] = useState<LocationDto | null>(null);
 	const groupedMarketRates = useMemo(() => groupMarketRates(bootstrap?.marketRates ?? []), [bootstrap]);
+
+	function handleExport(format: ExportFormat) {
+		if (!bootstrap) {
+			return;
+		}
+
+		exportMarketRates({
+			bootstrap,
+			format,
+			rates: bootstrap.marketRates,
+			selectedCurrency: null
+		});
+	}
 
 	if (isLoading && !bootstrap) {
 		return <MarketRatesSkeleton />;
@@ -52,8 +67,17 @@ export function MarketRatesPage({ bootstrap, error, isLoading, locale, onRefresh
 
 			<Card>
 				<CardHeader>
-					<CardTitle>{t("allRates")}</CardTitle>
-					<CardDescription>{t("allRatesSubtitle")}</CardDescription>
+					<div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+						<div className="min-w-0">
+							<CardTitle>{t("allRates")}</CardTitle>
+							<CardDescription>{t("allRatesSubtitle")}</CardDescription>
+						</div>
+						<ExportMenuButton
+							disabled={bootstrap.marketRates.length === 0}
+							onExport={handleExport}
+							t={t}
+						/>
+					</div>
 				</CardHeader>
 				<CardContent>
 					<MarketRatesList

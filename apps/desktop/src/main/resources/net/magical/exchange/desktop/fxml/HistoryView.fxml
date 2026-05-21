@@ -7,6 +7,7 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
@@ -42,6 +43,7 @@
 				<DatePicker fx:id="toPicker" maxWidth="Infinity" />
 			</VBox>
 		</GridPane>
+		<MenuButton fx:id="exportMenuButton" styleClass="outline-button" />
 	</HBox>
 	<VBox spacing="14" styleClass="card">
 		<padding>

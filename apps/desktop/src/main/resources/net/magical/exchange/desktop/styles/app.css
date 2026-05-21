@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/correctness/noUnknownProperty: JavaFX uses a custom property syntax with only 1 - instead of -- */
 .app-root.light {
 	-background: #fbf8ff;
 	-foreground: #2f2335;
@@ -56,6 +57,7 @@
 }
 
 .brand-logo {
+	/* biome-ignore lint/correctness/noUnknownFunction: It exists but isn't recognized due to JavaFX special syntax */
 	-fx-effect: dropshadow(gaussian, rgba(47, 35, 53, 0.12), 10, 0, 0, 2);
 }
 
@@ -143,6 +145,7 @@
 	-fx-text-fill: -muted-foreground;
 }
 
+/* biome-ignore lint/correctness/noUnknownPseudoClass: JavaFX special syntax */
 .nav-segment .toggle-button:selected,
 .primary-button,
 .rail-button-active {

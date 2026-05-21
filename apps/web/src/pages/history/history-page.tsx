@@ -1,9 +1,11 @@
 import { type ReactNode, useMemo, useState } from "react";
 import type { Translate } from "@/app-types";
+import { ExportMenuButton } from "@/components/export-menu-button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { InputField, SelectField } from "@/components/ui/field";
 import { Skeleton } from "@/components/ui/skeleton";
+import { type ExportFormat, exportOfficialRateHistory } from "@/export-data";
 import { daysAgoIsoDate, formatDate, todayIsoDate } from "@/format";
 import type { UiLocale } from "@/i18n";
 import type { BootstrapDto } from "@/services/exchange-api";
@@ -29,7 +31,22 @@ export function HistoryPage({ bootstrap, country, locale, onSelectedCurrencyChan
 	const dateRangeError = from > to ? t("invalidDateRange") : null;
 	const { error, history, isLoading } = useOfficialRateHistory(country, selectedCurrency, from, to, !dateRangeError);
 	const chartData = useMemo(() => toHistoryChartData(history, locale), [history, locale]);
+	const baseCurrency = bootstrap?.country.baseCurrencyCode ?? "MDL";
+	const countryName = bootstrap?.country.name ?? country;
 	let chartContent: ReactNode;
+
+	function handleExport(format: ExportFormat) {
+		exportOfficialRateHistory({
+			baseCurrency,
+			countryCode: country,
+			countryName,
+			currency: selectedCurrency,
+			format,
+			from,
+			history,
+			to
+		});
+	}
 
 	if (dateRangeError) {
 		chartContent = <EmptyState>{dateRangeError}</EmptyState>;
@@ -96,8 +113,17 @@ export function HistoryPage({ bootstrap, country, locale, onSelectedCurrencyChan
 
 			<Card>
 				<CardHeader>
-					<CardTitle>{t("tableHistory")}</CardTitle>
-					<CardDescription>{selectedCurrency}</CardDescription>
+					<div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+						<div className="min-w-0">
+							<CardTitle>{t("tableHistory")}</CardTitle>
+							<CardDescription>{selectedCurrency}</CardDescription>
+						</div>
+						<ExportMenuButton
+							disabled={Boolean(dateRangeError) || isLoading || history.length === 0}
+							onExport={handleExport}
+							t={t}
+						/>
+					</div>
 				</CardHeader>
 				<CardContent>
 					<HistoryTable
