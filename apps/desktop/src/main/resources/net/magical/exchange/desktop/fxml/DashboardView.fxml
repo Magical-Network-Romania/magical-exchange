@@ -107,10 +107,9 @@
 		</VBox>
 		<GridPane hgap="14" vgap="14">
 			<columnConstraints>
-				<ColumnConstraints hgrow="ALWAYS" percentWidth="25" />
-				<ColumnConstraints hgrow="ALWAYS" percentWidth="25" />
-				<ColumnConstraints hgrow="ALWAYS" percentWidth="25" />
-				<ColumnConstraints hgrow="ALWAYS" percentWidth="25" />
+				<ColumnConstraints hgrow="ALWAYS" percentWidth="33.333" />
+				<ColumnConstraints hgrow="ALWAYS" percentWidth="33.333" />
+				<ColumnConstraints hgrow="ALWAYS" percentWidth="33.333" />
 			</columnConstraints>
 			<VBox spacing="8" styleClass="metric-card" GridPane.columnIndex="0">
 				<Label fx:id="officialDateMetricLabel" styleClass="muted-small" />
@@ -121,10 +120,6 @@
 				<Label fx:id="locationsMetricValue" styleClass="metric-value" />
 			</VBox>
 			<VBox spacing="8" styleClass="metric-card" GridPane.columnIndex="2">
-				<Label fx:id="marketRatesMetricLabel" styleClass="muted-small" />
-				<Label fx:id="marketRatesMetricValue" styleClass="metric-value" />
-			</VBox>
-			<VBox spacing="8" styleClass="metric-card" GridPane.columnIndex="3">
 				<Label fx:id="baseCurrencyMetricLabel" styleClass="muted-small" />
 				<Label fx:id="baseCurrencyMetricValue" styleClass="metric-value" />
 			</VBox>

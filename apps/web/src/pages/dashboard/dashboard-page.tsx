@@ -141,7 +141,7 @@ export function DashboardPage({
 				</Card>
 			</section>
 
-			<section className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+			<section className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-3">
 				<MetricCard
 					icon={<CalendarDays className="size-4" />}
 					label={t("latestOfficialDate")}
@@ -151,11 +151,6 @@ export function DashboardPage({
 					icon={<Building2 className="size-4" />}
 					label={t("locations")}
 					value={formatCompactNumber(bootstrap.locations.length, locale)}
-				/>
-				<MetricCard
-					icon={<TrendingUp className="size-4" />}
-					label={t("marketRates")}
-					value={formatCompactNumber(bootstrap.marketRates.length, locale)}
 				/>
 				<MetricCard
 					icon={<MapPin className="size-4" />}

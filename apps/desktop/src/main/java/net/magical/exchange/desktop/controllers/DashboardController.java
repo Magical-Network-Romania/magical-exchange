@@ -132,12 +132,6 @@ public class DashboardController implements PageController {
 	private Label locationsMetricValue;
 
 	@FXML
-	private Label marketRatesMetricLabel;
-
-	@FXML
-	private Label marketRatesMetricValue;
-
-	@FXML
 	private Label baseCurrencyMetricLabel;
 
 	@FXML
@@ -188,7 +182,6 @@ public class DashboardController implements PageController {
 		sellOutputLabel.setText(host.i18n().text("youReceive"));
 		officialDateMetricLabel.setText(host.i18n().text("latestOfficialDate"));
 		locationsMetricLabel.setText(host.i18n().text("locations"));
-		marketRatesMetricLabel.setText(host.i18n().text("marketRates"));
 		baseCurrencyMetricLabel.setText(host.i18n().text("baseCurrency"));
 		officialRatesTitleLabel.setText(host.i18n().text("cardOfficialTitle"));
 		officialRatesDescriptionLabel.setText(host.i18n().text("cardOfficialDescription"));
@@ -364,7 +357,6 @@ public class DashboardController implements PageController {
 	private void renderMetrics(String baseCurrency) {
 		officialDateMetricValue.setText(ExchangeFormat.formatDate(currentBootstrap.officialRates().rateDate(), currentLocale));
 		locationsMetricValue.setText(ExchangeFormat.formatNumber(currentBootstrap.locations().size(), currentLocale));
-		marketRatesMetricValue.setText(ExchangeFormat.formatNumber(currentBootstrap.marketRates().size(), currentLocale));
 		baseCurrencyMetricValue.setText(baseCurrency);
 	}
 
