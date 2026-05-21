@@ -55,7 +55,7 @@
 				<artifactId>javafx-maven-plugin</artifactId>
 				<version>${javafx.maven.plugin.version}</version>
 				<configuration>
-					<mainClass>net.magical.exchange.desktop.MagicalExchangeDesktopApplication</mainClass>
+					<mainClass>net.magical.exchange.desktop.App</mainClass>
 					<options>
 						<option>--enable-native-access=javafx.graphics</option>
 					</options>

@@ -10,7 +10,7 @@ import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import net.magical.exchange.desktop.controllers.AppController;
 
-public class MagicalExchangeDesktopApplication extends Application {
+public class App extends Application {
 
 	private static final String APP_FXML = "/net/magical/exchange/desktop/fxml/App.fxml";
 	private static final String APP_CSS = "/net/magical/exchange/desktop/styles/app.css";
@@ -39,7 +39,7 @@ public class MagicalExchangeDesktopApplication extends Application {
 	}
 
 	private static URL requiredResource(String path) {
-		URL resource = MagicalExchangeDesktopApplication.class.getResource(path);
+		URL resource = App.class.getResource(path);
 
 		if (resource == null) {
 			throw new IllegalStateException("Missing desktop resource: " + path);
